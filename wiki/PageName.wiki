@@ -1,0 +1,6 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+*Replaced Edit control of dialog box with Ip address control.*
+
+This will make the soft more flexible ofor user input. :)
