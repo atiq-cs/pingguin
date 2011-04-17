@@ -83,7 +83,6 @@
     <ClInclude Include="PingGUIN.h" />
     <ClInclude Include="ProvideNetInfoDialog.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="PingGUIN.rc" />
