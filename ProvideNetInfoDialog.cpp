@@ -2,6 +2,7 @@
 //
 
 #include <afxwin.h>
+#include <afxcmn.h>
 #include "resource.h"
 #include "ProvideNetInfoDialog.h"
 
@@ -21,15 +22,18 @@ NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) {
 }
 
 BOOL NetInfoDialog::OnInitDialog() {
-	CEdit *CGateway, *CPriDNS, *CSecDNS;
+	//CEdit *CGateway, *CPriDNS, *CSecDNS;
 	CDialog::OnInitDialog();
 
-	/*SetDlgItemText(IDC_EDIT1, _T("Enter default gateway here"));
-	SetDlgItemText(IDC_EDIT2, _T("Enter primary DNS here"));
-	SetDlgItemText(IDC_EDIT3, _T("Enter secondary DNS here"));*/
-	CGateway = (CEdit *) GetDlgItem(IDC_EDIT1);
-	CPriDNS = (CEdit *) GetDlgItem(IDC_EDIT2);
-	CSecDNS = (CEdit *) GetDlgItem(IDC_EDIT3);
+	CIPAddressCtrl *CGateway;
+	CGateway = (CIPAddressCtrl *) GetDlgItem(IDC_IPADDRESS1);
+
+	/*SetDlgItemText(IDC_IPADDRESS1, _T("Enter default gateway here"));
+	SetDlgItemText(IDC_IPADDRESS2, _T("Enter primary DNS here"));
+	SetDlgItemText(IDC_IPADDRESS3, _T("Enter secondary DNS here"));
+	CGateway = (CEdit *) GetDlgItem(IDC_IPADDRESS1);
+	CPriDNS = (CEdit *) GetDlgItem(IDC_IPADDRESS2);
+	CSecDNS = (CEdit *) GetDlgItem(IDC_IPADDRESS3);
 
 	CGateway->SetWindowText(_T("Enter default gateway here"));
 	CPriDNS->SetWindowText(_T("Enter primary DNS here"));
@@ -38,7 +42,9 @@ BOOL NetInfoDialog::OnInitDialog() {
 	CGateway->SetSel(0, -1);
 	//GotoDlgCtrl(CGateway);
 	PostMessage(WM_NEXTDLGCTL, (WPARAM) CGateway->GetSafeHwnd(), TRUE);
-	//PostMessage(WM_NEXTDLGCTL, (WPARAM) CGateway->GetSafeHwnd(), TRUE);
+	*/
+
+	PostMessage(WM_NEXTDLGCTL, (WPARAM) CGateway->GetSafeHwnd(), TRUE);
 
 	return TRUE;
 }
@@ -57,12 +63,9 @@ void NetInfoDialog::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(NetInfoDialog)
 		// NOTE: the ClassWizard will add DDX and DDV calls here
-	DDX_Text(pDX, IDC_EDIT1, m_GWIP);
-	DDV_MaxChars(pDX, m_GWIP, 15);
-	DDX_Text(pDX, IDC_EDIT2, m_PRIDNS);
-	DDV_MaxChars(pDX, m_PRIDNS, 15);
-	DDX_Text(pDX, IDC_EDIT3, m_SecDNS);
-	DDV_MaxChars(pDX, m_SecDNS, 15);
+	DDX_Text(pDX, IDC_IPADDRESS1, m_GWIP);
+	DDX_Text(pDX, IDC_IPADDRESS2, m_PRIDNS);
+	DDX_Text(pDX, IDC_IPADDRESS3, m_SecDNS);
 	//}}AFX_DATA_MAP
 }
 
