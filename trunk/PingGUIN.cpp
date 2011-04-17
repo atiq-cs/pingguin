@@ -6,6 +6,7 @@
 				Impelemnetation of ICMP echo,
 				DNS
 	Site:		http://saosx.com
+	Last Mod:	17 April, 2011
 */
 
 #include "PingGUIN.h"
