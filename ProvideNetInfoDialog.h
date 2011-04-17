@@ -21,6 +21,7 @@ public:
 	//NetInfoDialog::NetInfoDialog(UINT nIDTemplate);
 	NetInfoDialog();
 	void GetNetInfo(CString* strArray);
+	BOOL IsNotifyOn() { return (m_IsNotifyOn != 0); }
 
 // Dialog Data
 	//{{AFX_DATA(NetInfoDialog)
@@ -38,6 +39,8 @@ private:
 	CString m_GWIP;
 	CString m_PRIDNS;
 	CString m_SecDNS;
+
+	int m_IsNotifyOn;
 };
 
 //{{AFX_INSERT_LOCATION}}

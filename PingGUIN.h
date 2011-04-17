@@ -10,7 +10,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define ID_TIMER 101
-#define MSGSIZE	1000
+#define MSGSIZE	1500
 
 class CCustomCommandLineInfo : public CCommandLineInfo {
 public:

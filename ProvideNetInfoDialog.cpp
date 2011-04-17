@@ -49,9 +49,6 @@ BOOL NetInfoDialog::OnInitDialog() {
 	return TRUE;
 }
 
-/*	This function returns info depending on mode
- *
- */
 void NetInfoDialog::GetNetInfo(CString* strArray) {
 	strArray[0] = m_GWIP;
 	strArray[1] = m_PRIDNS;
@@ -66,6 +63,7 @@ void NetInfoDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_IPADDRESS1, m_GWIP);
 	DDX_Text(pDX, IDC_IPADDRESS2, m_PRIDNS);
 	DDX_Text(pDX, IDC_IPADDRESS3, m_SecDNS);
+	DDX_Check(pDX, IDC_CHECK1, m_IsNotifyOn);
 	//}}AFX_DATA_MAP
 }
 
