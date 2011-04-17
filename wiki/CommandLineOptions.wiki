@@ -1,0 +1,12 @@
+#labels Featured
+Command line options has been added with the application.
+
+= Introduction =
+Pingguin from now on will work with command line options. Here's a command line usage example,
+
+pinggui /ip 192.168.16.1 /pd 174.136.48.107 /sd 4.2.2.2
+
+N.B, /t switch enables notification
+
+= Details =
+1. Still not implemented if other strings are not provided those ip addresses will be set to 0.0.0.0
