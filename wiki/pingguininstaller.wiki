@@ -1,0 +1,14 @@
+#labels Phase-Requirements
+= Introduction =
+Installer for pingguin software.
+
+= Details =
+
+Installer software for this project will be released soon. I have chosen NSIS for installation scripting as it is a very good open source project. If anyone have better idea mention.
+
+Installer will contain following feature
+  * Modern user interface
+  * Option to users for changing default installation directory.
+  * Option to users for choose whether to install start menu items.
+
+If you have suggestion please mention.
