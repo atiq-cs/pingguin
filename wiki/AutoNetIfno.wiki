@@ -1,0 +1,17 @@
+#labels Phase-Design
+Automatically retrieve net settings
+
+= Introduction =
+
+Automatically retrieve net settings using API
+
+
+= Details =
+
+*By default automatically retrieve internet settings.* It means in ip address control initially the settings will be set.
+
+There are will be following options in the dialog box
+-- check-box: ping a single host or not
+-- Notify when target comes online
+
+If user click 'select single host' check box the text default gateway changes to "Target host IP"
