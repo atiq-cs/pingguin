@@ -18,6 +18,8 @@ static char THIS_FILE[] = __FILE__;
 NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) {
 	//{{AFX_DATA_INIT(NetInfoDialog)
 		// NOTE: the ClassWizard will add member initialization here
+	m_IsSingleHost = FALSE;
+	m_IsNotifyOn = FALSE;
 	//}}AFX_DATA_INIT
 }
 
@@ -72,7 +74,26 @@ BEGIN_MESSAGE_MAP(NetInfoDialog, CDialog)
 	//{{AFX_MSG_MAP(NetInfoDialog)
 		// NOTE: the ClassWizard will add message map macros here
 	//}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_CHECK2, &NetInfoDialog::OnBnClickedCheck2)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog message handlers
+/*
+	Specifies what should happen user click checkbox "ping single host"
+*/
+void NetInfoDialog::OnBnClickedCheck2() {
+	if (m_IsSingleHost == TRUE) {
+		SetDlgItemText(IDC_STATIC2, _T("Default Gateway IP"));
+		GetDlgItem(IDC_IPADDRESS2)->EnableWindow(TRUE);
+		GetDlgItem(IDC_IPADDRESS3)->EnableWindow(TRUE);
+		m_IsSingleHost = FALSE;
+	}
+	else {
+		SetDlgItemText(IDC_STATIC2, _T("Target host IP"));
+		GetDlgItem(IDC_IPADDRESS2)->EnableWindow(FALSE);
+		GetDlgItem(IDC_IPADDRESS3)->EnableWindow(FALSE);
+
+		m_IsSingleHost = TRUE;
+	}
+}
