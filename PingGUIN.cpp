@@ -52,6 +52,7 @@ SAFrame::SAFrame() {
 	// Create the window's frame
 	Create(NULL, _T("SAOSX PingGUIn"), WS_OVERLAPPEDWINDOW,
 	       CRect(120, 100, 500, 285), NULL);
+
 	TimeOutInterval = 5100;
 	SetTimer (ID_TIMER, TimeOutInterval-100, &SAFrame::TimerProc);
 	_stprintf_s(TextStr, MSGSIZE, _T("\r\n\tPingGUIN is sending request.."));
@@ -87,6 +88,7 @@ int SAFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_Edit01.Create(ES_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_AUTOVSCROLL | ES_READONLY,
 		          PRect, this, 0x188);
 	// Since the window was successfully created, return 0
+
 	return 0;
 }
 
@@ -375,6 +377,7 @@ BOOL CSAApp::InitInstance() {
 
 	}
 
+	//LoadIcon(IDI_ICON1);
 	m_pMainWnd = new SAFrame;
 	m_pMainWnd->ShowWindow(SW_SHOW);
 	m_pMainWnd->UpdateWindow();

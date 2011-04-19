@@ -88,6 +88,9 @@
   <ItemGroup>
     <ResourceCompile Include="PingGUIN.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="res\PingGUIN.ico" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
