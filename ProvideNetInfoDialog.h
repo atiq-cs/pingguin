@@ -40,7 +40,10 @@ private:
 	CString m_PRIDNS;
 	CString m_SecDNS;
 
-	int m_IsNotifyOn;
+	BOOL m_IsNotifyOn;
+	BOOL m_IsSingleHost;
+public:
+	afx_msg void OnBnClickedCheck2();
 };
 
 //{{AFX_INSERT_LOCATION}}
