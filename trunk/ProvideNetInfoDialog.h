@@ -1,5 +1,11 @@
 #include <afxwin.h>
 #include "resource.h"
+// For COM
+#define _WIN32_DCOM
+#include <comdef.h>
+#include <Wbemidl.h>
+# pragma comment(lib, "wbemuuid.lib")
+
 
 #if !defined(AFX_MYDIALOG_H__20B59A5E_FBE6_4A1C_A6B7_FDC199FE74EC__INCLUDED_)
 #define AFX_MYDIALOG_H__20B59A5E_FBE6_4A1C_A6B7_FDC199FE74EC__INCLUDED_
@@ -22,6 +28,7 @@ public:
 	NetInfoDialog();
 	void GetNetInfo(CString* strArray);
 	BOOL IsNotifyOn() { return (m_IsNotifyOn != 0); }
+	CString GetWMINETINFO();
 
 // Dialog Data
 	//{{AFX_DATA(NetInfoDialog)
