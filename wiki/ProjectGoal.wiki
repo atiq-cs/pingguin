@@ -1,0 +1,12 @@
+#labels Phase-Design
+= Introduction =
+Project Goal Overview
+
+= Details =
+
+Goad of the project includes:
+1. An app that can tell us whether there is internet available or not
+2. If not available then it'd estimate some reasons why it is not available
+3. It can notify when target is alive or internet is available
+4. GUI should be pleasing and friendly
+   ** It's why so charisma has been done on dialog box and automatic retrieval of network settings. Window text-box should be replaced with progress-bar.
