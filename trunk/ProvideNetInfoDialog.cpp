@@ -71,10 +71,11 @@ CString NetInfoDialog::GetWMINETINFO() {
     IWbemLocator *pLoc = NULL;
 
     hres = CoCreateInstance(
-        CLSID_WbemLocator,             
+        CLSID_WbemAdministrativeLocator, // changed
         0, 
-        CLSCTX_INPROC_SERVER, 
-        IID_IWbemLocator, (LPVOID *) &pLoc);
+        CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER, // changed from CLSCTX_INPROC_SERVER, 
+        IID_IUnknown, // changed from IID_IWbemLocator,
+		(LPVOID *) &pLoc);
  
     if (FAILED(hres))
     {
@@ -142,7 +143,7 @@ CString NetInfoDialog::GetWMINETINFO() {
     IEnumWbemClassObject* pEnumerator = NULL;
     hres = pSvc->ExecQuery(
         bstr_t("WQL"), 
-        bstr_t("SELECT * FROM Win32_OperatingSystem"),
+        bstr_t("SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = 'TRUE'"),	//bstr_t("SELECT * FROM Win32_NetworkAdapterConfiguration"),
         WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, 
         NULL,
         &pEnumerator);
@@ -167,22 +168,101 @@ CString NetInfoDialog::GetWMINETINFO() {
         HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1, 
             &pclsObj, &uReturn);
 
-        if(0 == uReturn)
-        {
-            break;
-        }
+        if(0 == uReturn) break;
+
 
         VARIANT vtProp;
+		BSTR* pbstr = NULL;
+		hr = pclsObj->Get(L"IPEnabled", 0, &vtProp, 0, 0);
+		if(vtProp.boolVal) { 
+			LONG lstart, lend;
+			SAFEARRAY *psa;
+			// Get the value of the DefaultIPGateway property
+			hr = pclsObj->Get(L"DefaultIPGateway", 0, &vtProp, 0, 0);
 
-        // Get the value of the Name property
-        hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-		/*_bstr_t tmp(vtProp.bstrVal, FALSE);   //wrap the BSTR
-		TCHAR *str = static_cast<TCHAR *>(tmp);
+			psa = vtProp.parray;
+			// Get the lower and upper bound
+			hr = SafeArrayGetLBound( psa, 1, &lstart );
+			if(FAILED(hr)) {
+				ErrorMsg.Format(_T("Failed to get LBound"), hres);
+				return ErrorMsg;
+			}
 
-		m_GWIP = str;*/
-		m_GWIP = vtProp.bstrVal;
-		
-        //wcout << " OS Name : " << vtProp.bstrVal << endl;
+			hr = SafeArrayGetUBound( psa, 1, &lend );
+			if(FAILED(hr)) {
+				ErrorMsg.Format(_T("Failed to get LBound"), hres);
+				return ErrorMsg;
+			}
+
+			hr = SafeArrayAccessData(psa, (void HUGEP**)&pbstr);
+			if(SUCCEEDED(hr))
+			{
+				char *ch; 
+				ch = _com_util::ConvertBSTRToString(*pbstr);
+				CString str = ch;
+				m_GWIP = str;
+				ErrorMsg = _T("");
+				//for(idx=lstart; idx <= lend; idx++)
+				//	cout << "GATEWAY:" << pbstr[idx] << endl;
+				hr = SafeArrayUnaccessData(psa); 
+			}
+			// Get the value of the DNSServerSearchOrder property
+			hr = pclsObj->Get(L"DNSServerSearchOrder", 0, &vtProp, 0, 0);
+
+			psa = vtProp.parray;
+			// 1st Index
+			// Get the lower and upper bound
+			hr = SafeArrayGetLBound( psa, 1, &lstart );
+			if(FAILED(hr)) {
+				ErrorMsg.Format(_T("Failed to get LBound"), hres);
+				return ErrorMsg;
+			}
+
+			hr = SafeArrayGetUBound( psa, 1, &lend );
+			if(FAILED(hr)) {
+				ErrorMsg.Format(_T("Failed to get UBound"), hres);
+				return ErrorMsg;
+			}
+
+			hr = SafeArrayAccessData(psa, (void HUGEP**)&pbstr);
+			/*if(SUCCEEDED(hr))
+			{
+				char *ch; 
+				ch = _com_util::ConvertBSTRToString(*pbstr);
+			 	CString str = ch;
+				m_PRIDNS = str;
+				pbstr++;
+				ch = _com_util::ConvertBSTRToString(*pbstr);
+			 	str = ch;
+				m_SecDNS = str;
+				ErrorMsg = _T("");
+				//for(idx=lstart; idx <= lend; idx++)
+				//	cout << "GATEWAY:" << pbstr[idx] << endl;
+				hr = SafeArrayUnaccessData(psa); 
+			}*/
+
+			if(SUCCEEDED(hr))
+			{
+				AfxMessageBox(_T("Start retrieve process"));
+				char *ch; 
+				ch = _com_util::ConvertBSTRToString(pbstr[0]);
+			 	CString str = ch;
+				m_PRIDNS = str;
+				AfxMessageBox(_T("Primary DNS Server") + m_PRIDNS);
+				ch = _com_util::ConvertBSTRToString(pbstr[1]);
+			 	str = ch;
+				m_SecDNS = str;
+				AfxMessageBox(_T("Secondary DNS Server") + m_SecDNS);
+				ErrorMsg = _T("");
+				//for(idx=lstart; idx <= lend; idx++)
+				//	cout << "GATEWAY:" << pbstr[idx] << endl;
+			}
+			hr = SafeArrayUnaccessData(psa); 
+			if(FAILED(hr)) {
+				ErrorMsg.Format(_T("Failed SafeArrayUnaccessData"), hres);
+				return ErrorMsg;
+			}
+		}
         VariantClear(&vtProp);
 
         pclsObj->Release();
@@ -199,6 +279,67 @@ CString NetInfoDialog::GetWMINETINFO() {
 	return ErrorMsg;
 }
 
+long DisplayStringArray(VARIANT* vArray) {
+    long i;
+    SAFEARRAY FAR* psa = NULL;
+    BSTR HUGEP *pbstr;
+    HRESULT hr;
+    DWORD dwTimeStart;
+    LONG cElements, lLBound, lUBound;
+
+    USES_CONVERSION;
+
+    // Type check VARIANT parameter. It should contain a BSTR array
+    // passed by reference. The array must be passed by reference it is
+    // an in-out-parameter.
+    if (V_VT(vArray) != (VT_ARRAY | VT_BSTR)) {
+		return 0;
+
+        AfxThrowOleDispatchException(1001,
+			_T("Type Mismatch in Parameter. Pass a string array by reference"));
+	}
+    psa = V_ARRAY(vArray);
+    // Check dimensions of the array.
+    if (SafeArrayGetDim(psa) != 1)
+        AfxThrowOleDispatchException(1002,
+        _T("Type Mismatch in Parameter. Pass a one-dimensional array"));
+
+    dwTimeStart = GetTickCount();
+
+    // Get array bounds.
+    hr = SafeArrayGetLBound(psa, 1, &lLBound);
+    if (FAILED(hr))
+        goto error;
+    hr = SafeArrayGetUBound(psa, 1, &lUBound);
+    if (FAILED(hr))
+        goto error;
+
+    // Get a pointer to the elements of the array.
+    hr = SafeArrayAccessData(psa, (void HUGEP* FAR*)&pbstr);
+    if (FAILED(hr))
+        goto error;
+
+    // Bubble sort.
+    cElements = lUBound-lLBound+1;
+    for (i = 0; i < cElements; i++)
+    {
+		CString tmp(pbstr[i]);
+		AfxMessageBox(tmp);
+    }
+
+    hr = SafeArrayUnaccessData(psa);
+    if (FAILED(hr))
+        goto error;
+
+    return GetTickCount()-dwTimeStart;
+
+error:
+
+    AfxThrowOleDispatchException(1003,
+    _T("Unexpected Failure in FastSort method"));
+    return 0;
+}
+
 BOOL NetInfoDialog::OnInitDialog() {
 	//CEdit *CGateway, *CPriDNS, *CSecDNS;
 	CDialog::OnInitDialog();
@@ -208,10 +349,20 @@ BOOL NetInfoDialog::OnInitDialog() {
 
 	// Get Net Info for setting in ipaddress control
 	CString ErrorMsg = GetWMINETINFO();
-	if (ErrorMsg != _T(""))
+	if (m_GWIP != "")
+		SetDlgItemText(IDC_IPADDRESS1, m_GWIP);
+
+	if (m_PRIDNS == "")
+		m_PRIDNS = _T("8.8.8.8");
+	if (m_SecDNS == "")
+		m_SecDNS = _T("4.2.2.2");
+
+	SetDlgItemText(IDC_IPADDRESS2, m_PRIDNS);
+	SetDlgItemText(IDC_IPADDRESS3, m_SecDNS);
+	/*if (ErrorMsg != _T(""))
 		MessageBox(ErrorMsg);
 	MessageBox(m_GWIP);
-	/*SetDlgItemText(IDC_IPADDRESS1, _T("Enter default gateway here"));
+	SetDlgItemText(IDC_IPADDRESS1, _T("Enter default gateway here"));
 	SetDlgItemText(IDC_IPADDRESS2, _T("Enter primary DNS here"));
 	SetDlgItemText(IDC_IPADDRESS3, _T("Enter secondary DNS here"));
 	CGateway = (CEdit *) GetDlgItem(IDC_IPADDRESS1);
