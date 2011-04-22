@@ -2,6 +2,7 @@
 #include "resource.h"
 // For COM
 #define _WIN32_DCOM
+#include <afxdisp.h>			// for AfxThrowOleDispatchException
 #include <comdef.h>
 #include <Wbemidl.h>
 # pragma comment(lib, "wbemuuid.lib")
@@ -18,6 +19,8 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog dialog
+
+long DisplayStringArray(VARIANT* vArray);
 
 class NetInfoDialog : public CDialog
 {
