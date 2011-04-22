@@ -7,10 +7,10 @@ PingGUIn Todo works
 = Details =
 
 Program behavior modification included as follows:
-Make request to gateway
-Then to primary dns server
-Then to secondary dns server
-** _Then make dns lookup [this is to be done]_
+1. Make request to gateway
+2. Then to primary dns server
+3. Then to secondary dns server
+4. _Then make dns lookup [this is to be done]_
 
-* _Notification in system tray when internet is available._
-* _Add System tray icon_
+a. _Notification in system tray when internet is available._
+b. _Add System tray icon_
