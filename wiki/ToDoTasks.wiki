@@ -1,0 +1,16 @@
+#labels Phase-Implementation
+Discussed what is to be done in future.
+
+= Introduction =
+PingGUIn Todo works
+
+= Details =
+
+Program behavior modification included as follows:
+Make request to gateway
+Then to primary dns server
+Then to secondary dns server
+** _Then make dns lookup [this is to be done]_
+
+* _Notification in system tray when internet is available._
+* _Add System tray icon_
