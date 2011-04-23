@@ -170,7 +170,6 @@ CString NetInfoDialog::GetWMINETINFO() {
 
         if(0 == uReturn) break;
 
-
         VARIANT vtProp;
 		BSTR* pbstr = NULL;
 		hr = pclsObj->Get(L"IPEnabled", 0, &vtProp, 0, 0);
@@ -190,7 +189,7 @@ CString NetInfoDialog::GetWMINETINFO() {
 
 			hr = SafeArrayGetUBound( psa, 1, &lend );
 			if(FAILED(hr)) {
-				ErrorMsg.Format(_T("Failed to get LBound"), hres);
+				ErrorMsg.Format(_T("Failed to get UBound"), hres);
 				return ErrorMsg;
 			}
 
@@ -243,7 +242,6 @@ CString NetInfoDialog::GetWMINETINFO() {
 
 			if(SUCCEEDED(hr))
 			{
-				AfxMessageBox(_T("Start retrieve process"));
 				char *ch; 
 				ch = _com_util::ConvertBSTRToString(pbstr[0]);
 			 	CString str = ch;
@@ -256,11 +254,7 @@ CString NetInfoDialog::GetWMINETINFO() {
 				ErrorMsg = _T("");
 				//for(idx=lstart; idx <= lend; idx++)
 				//	cout << "GATEWAY:" << pbstr[idx] << endl;
-			}
-			hr = SafeArrayUnaccessData(psa); 
-			if(FAILED(hr)) {
-				ErrorMsg.Format(_T("Failed SafeArrayUnaccessData"), hres);
-				return ErrorMsg;
+				hr = SafeArrayUnaccessData(psa); 
 			}
 		}
         VariantClear(&vtProp);
@@ -275,10 +269,11 @@ CString NetInfoDialog::GetWMINETINFO() {
     pLoc->Release();
     pEnumerator->Release();
     CoUninitialize();
+	AfxMessageBox(_T("Success!!"));
 
 	return ErrorMsg;
 }
-
+/*
 long DisplayStringArray(VARIANT* vArray) {
     long i;
     SAFEARRAY FAR* psa = NULL;
@@ -338,7 +333,7 @@ error:
     AfxThrowOleDispatchException(1003,
     _T("Unexpected Failure in FastSort method"));
     return 0;
-}
+}*/
 
 BOOL NetInfoDialog::OnInitDialog() {
 	//CEdit *CGateway, *CPriDNS, *CSecDNS;
@@ -348,15 +343,18 @@ BOOL NetInfoDialog::OnInitDialog() {
 	CGateway = (CIPAddressCtrl *) GetDlgItem(IDC_IPADDRESS1);
 
 	// Get Net Info for setting in ipaddress control
-	CString ErrorMsg = GetWMINETINFO();
-	if (m_GWIP != "")
-		SetDlgItemText(IDC_IPADDRESS1, m_GWIP);
+	MessageBox(_T("Before calling function"));
+	MessageBox(_T("In Dialog Error: ") + GetWMINETINFO());
+	MessageBox(_T("After function"));
 
+	if (m_GWIP == "")
+		m_GWIP = _T("0.0.0.0");
 	if (m_PRIDNS == "")
 		m_PRIDNS = _T("8.8.8.8");
 	if (m_SecDNS == "")
 		m_SecDNS = _T("4.2.2.2");
 
+	SetDlgItemText(IDC_IPADDRESS1, m_GWIP);
 	SetDlgItemText(IDC_IPADDRESS2, m_PRIDNS);
 	SetDlgItemText(IDC_IPADDRESS3, m_SecDNS);
 	/*if (ErrorMsg != _T(""))
