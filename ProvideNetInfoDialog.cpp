@@ -246,11 +246,11 @@ CString NetInfoDialog::GetWMINETINFO() {
 				ch = _com_util::ConvertBSTRToString(pbstr[0]);
 			 	CString str = ch;
 				m_PRIDNS = str;
-				AfxMessageBox(_T("Primary DNS Server") + m_PRIDNS);
+				AfxMessageBox(_T("Primary DNS Server: ") + m_PRIDNS);
 				ch = _com_util::ConvertBSTRToString(pbstr[1]);
 			 	str = ch;
 				m_SecDNS = str;
-				AfxMessageBox(_T("Secondary DNS Server") + m_SecDNS);
+				AfxMessageBox(_T("Secondary DNS Server: ") + m_SecDNS);
 				ErrorMsg = _T("");
 				//for(idx=lstart; idx <= lend; idx++)
 				//	cout << "GATEWAY:" << pbstr[idx] << endl;
@@ -269,7 +269,7 @@ CString NetInfoDialog::GetWMINETINFO() {
     pLoc->Release();
     pEnumerator->Release();
     CoUninitialize();
-	AfxMessageBox(_T("Success!!"));
+	AfxMessageBox(_T("Reached end of the program!!"));
 
 	return ErrorMsg;
 }

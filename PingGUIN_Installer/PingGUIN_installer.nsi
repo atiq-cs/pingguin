@@ -22,6 +22,10 @@
   
   #Get installation folder from registry if available
   InstallDirRegKey HKCU "Software\PingGUIn" ""
+  
+  #Change Default Installer and Uninstaller Icons
+  !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\SAApp.ico"
+  !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\SARemoveApp.ico"
 
   #Request application privileges for Windows Vista
   RequestExecutionLevel admin
