@@ -26,6 +26,7 @@ NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) {
 CString NetInfoDialog::GetWMINETINFO() {
 	CString ErrorMsg;
 	HRESULT hres;
+	LONG cElements, lLBound, lUBound;
 
     // Step 1: --------------------------------------------------
     // Initialize COM. ------------------------------------------
@@ -173,78 +174,85 @@ CString NetInfoDialog::GetWMINETINFO() {
         VARIANT vtProp;
 		BSTR* pbstr = NULL;
 		hr = pclsObj->Get(L"IPEnabled", 0, &vtProp, 0, 0);
-		if(vtProp.boolVal) { 
-			LONG lstart, lend;
+		if(vtProp.boolVal) {
 			SAFEARRAY *psa;
 			// Get the value of the DefaultIPGateway property
 			hr = pclsObj->Get(L"DefaultIPGateway", 0, &vtProp, 0, 0);
 
-			psa = vtProp.parray;
-			// Get the lower and upper bound
-			hr = SafeArrayGetLBound( psa, 1, &lstart );
-			if(FAILED(hr)) {
-				ErrorMsg.Format(_T("Failed to get LBound"), hres);
-				return ErrorMsg;
-			}
+			if (vtProp.vt == (VT_ARRAY|VT_BSTR)) {
+				psa = vtProp.parray;
+				// Get the lower and upper bound
+				hr = SafeArrayGetLBound( psa, 1, &lLBound );
+				if(FAILED(hr)) {
+					ErrorMsg.Format(_T("Failed to get LBound"), hres);
+					return ErrorMsg;
+				}
 
-			hr = SafeArrayGetUBound( psa, 1, &lend );
-			if(FAILED(hr)) {
-				ErrorMsg.Format(_T("Failed to get UBound"), hres);
-				return ErrorMsg;
-			}
+				hr = SafeArrayGetUBound( psa, 1, &lUBound );
+				if(FAILED(hr)) {
+					ErrorMsg.Format(_T("Failed to get UBound"), hres);
+					return ErrorMsg;
+				}
 
-			hr = SafeArrayAccessData(psa, (void HUGEP**)&pbstr);
-			if(SUCCEEDED(hr))
-			{
-				char *ch; 
-				ch = _com_util::ConvertBSTRToString(*pbstr);
-				CString str = ch;
-				m_GWIP = str;
-				ErrorMsg = _T("");
-				//for(idx=lstart; idx <= lend; idx++)
-				//	cout << "GATEWAY:" << pbstr[idx] << endl;
+				hr = SafeArrayAccessData(psa, (void HUGEP**)&pbstr);
+				if(FAILED(hr)) {
+					ErrorMsg.Format(_T("Failed to access buffer for Default GW"), hres);
+					return ErrorMsg;
+				}
+
+				cElements = lUBound-lLBound+1;
+				if (cElements > 0)
+					m_GWIP = pbstr[0];
+				/*for (int i = 0; i < cElements; i++)
+				{
+					CString tmp(pbstr[i]);
+					AfxMessageBox(tmp);
+				}*/
 				hr = SafeArrayUnaccessData(psa); 
+				if(FAILED(hr)) {
+					ErrorMsg.Format(_T("Failed SafeArrayUnaccessData"), hres);
+					return ErrorMsg;
+				}
 			}
+			
 			// Get the value of the DNSServerSearchOrder property
 			hr = pclsObj->Get(L"DNSServerSearchOrder", 0, &vtProp, 0, 0);
 
-			psa = vtProp.parray;
-			// 1st Index
-			// Get the lower and upper bound
-			hr = SafeArrayGetLBound( psa, 1, &lstart );
-			if(FAILED(hr)) {
-				ErrorMsg.Format(_T("Failed to get LBound"), hres);
-				return ErrorMsg;
-			}
+			if (vtProp.vt == (VT_ARRAY|VT_BSTR)) {
+				psa = vtProp.parray;
+				// 1st Index
+				// Get the lower and upper bound
+				hr = SafeArrayGetLBound( psa, 1, &lLBound );
+				if(FAILED(hr)) {
+					ErrorMsg.Format(_T("Failed to get LBound"), hres);
+					return ErrorMsg;
+				}
 
-			hr = SafeArrayGetUBound( psa, 1, &lend );
-			if(FAILED(hr)) {
-				ErrorMsg.Format(_T("Failed to get UBound"), hres);
-				return ErrorMsg;
-			}
+				hr = SafeArrayGetUBound( psa, 1, &lUBound );
+				if(FAILED(hr)) {
+					ErrorMsg.Format(_T("Failed to get UBound"), hres);
+					return ErrorMsg;
+				}
 
-			hr = SafeArrayAccessData(psa, (void HUGEP**)&pbstr);
-			/*if(SUCCEEDED(hr))
-			{
-				char *ch; 
-				ch = _com_util::ConvertBSTRToString(*pbstr);
-			 	CString str = ch;
-				m_PRIDNS = str;
-				pbstr++;
-				ch = _com_util::ConvertBSTRToString(*pbstr);
-			 	str = ch;
-				m_SecDNS = str;
-				ErrorMsg = _T("");
-				//for(idx=lstart; idx <= lend; idx++)
-				//	cout << "GATEWAY:" << pbstr[idx] << endl;
-				hr = SafeArrayUnaccessData(psa); 
-			}*/
+				hr = SafeArrayAccessData(psa, (void HUGEP**)&pbstr);
+				if(FAILED(hr)) {
+					ErrorMsg.Format(_T("Failed to access buffer for DNS Servers"), hres);
+					return ErrorMsg;
+				}
+				//char *ch; 
+				// ch = _com_util::ConvertBSTRToString(pbstr[0]);
+				cElements = lUBound-lLBound+1;
+				if (cElements > 0)
+					m_PRIDNS = pbstr[0];
+				if (cElements > 1)
+					m_SecDNS = pbstr[1];
 
-			if(SUCCEEDED(hr))
-			{
-				char *ch; 
-				ch = _com_util::ConvertBSTRToString(pbstr[0]);
-			 	CString str = ch;
+				/*for (int i = 0; i < cElements; i++)
+				{
+					CString tmp(pbstr[i]);
+					AfxMessageBox(tmp);
+				}*/
+			 	/*CString str = ch;
 				m_PRIDNS = str;
 				AfxMessageBox(_T("Primary DNS Server: ") + m_PRIDNS);
 				ch = _com_util::ConvertBSTRToString(pbstr[1]);
@@ -252,10 +260,18 @@ CString NetInfoDialog::GetWMINETINFO() {
 				m_SecDNS = str;
 				AfxMessageBox(_T("Secondary DNS Server: ") + m_SecDNS);
 				ErrorMsg = _T("");
-				//for(idx=lstart; idx <= lend; idx++)
-				//	cout << "GATEWAY:" << pbstr[idx] << endl;
+				//for(idx=lLBound; idx <= lUBound; idx++)
+				//	cout << "GATEWAY:" << pbstr[idx] << endl;*/
 				hr = SafeArrayUnaccessData(psa); 
+				if(FAILED(hr)) {
+					ErrorMsg.Format(_T("Failed SafeArrayUnaccessData"), hres);
+					return ErrorMsg;
+				}
 			}
+
+			// break here if GWIP is already found
+			if (m_GWIP != "")
+				break;
 		}
         VariantClear(&vtProp);
 
@@ -269,7 +285,6 @@ CString NetInfoDialog::GetWMINETINFO() {
     pLoc->Release();
     pEnumerator->Release();
     CoUninitialize();
-	AfxMessageBox(_T("Reached end of the program!!"));
 
 	return ErrorMsg;
 }
@@ -343,9 +358,12 @@ BOOL NetInfoDialog::OnInitDialog() {
 	CGateway = (CIPAddressCtrl *) GetDlgItem(IDC_IPADDRESS1);
 
 	// Get Net Info for setting in ipaddress control
-	MessageBox(_T("Before calling function"));
-	MessageBox(_T("In Dialog Error: ") + GetWMINETINFO());
-	MessageBox(_T("After function"));
+	CString ErrorMsg = GetWMINETINFO();
+	if (!ErrorMsg.IsEmpty())
+	MessageBox(_T("In Dialog Error: ") + ErrorMsg);
+
+	/*MessageBox(_T("Before calling function"));
+	MessageBox(_T("After function"));*/
 
 	if (m_GWIP == "")
 		m_GWIP = _T("0.0.0.0");
