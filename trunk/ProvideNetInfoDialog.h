@@ -32,6 +32,12 @@ public:
 	void GetNetInfo(CString* strArray);
 	BOOL IsNotifyOn() { return (m_IsNotifyOn != 0); }
 	CString GetWMINETINFO();
+	static UINT DNSThreadProc( LPVOID pParam );
+	typedef struct THREADSTRUCT				//structure for passing to the controlling function
+	{
+		NetInfoDialog*	_this;
+	} THREADSTRUCT;
+	
 
 // Dialog Data
 	//{{AFX_DATA(NetInfoDialog)

@@ -18,7 +18,7 @@ static char THIS_FILE[] = __FILE__;
 NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) {
 	//{{AFX_DATA_INIT(NetInfoDialog)
 		// NOTE: the ClassWizard will add member initialization here
-	m_IsSingleHost = FALSE;
+	m_IsSingleHost = TRUE;
 	m_IsNotifyOn = FALSE;
 	//}}AFX_DATA_INIT
 }
@@ -61,7 +61,6 @@ CString NetInfoDialog::GetWMINETINFO() {
     if (FAILED(hres))
     {
 		ErrorMsg.Format(_T("Failed to initialize security. Error code = %d"), hres);
-
         CoUninitialize();
         return ErrorMsg;                    // Program has failed.
     }
@@ -288,77 +287,125 @@ CString NetInfoDialog::GetWMINETINFO() {
 
 	return ErrorMsg;
 }
-/*
-long DisplayStringArray(VARIANT* vArray) {
-    long i;
-    SAFEARRAY FAR* psa = NULL;
-    BSTR HUGEP *pbstr;
-    HRESULT hr;
-    DWORD dwTimeStart;
-    LONG cElements, lLBound, lUBound;
 
-    USES_CONVERSION;
+UINT NetInfoDialog::DNSThreadProc( LPVOID pParam )
+{
+    /*CMyObject* pObject = (CMyObject*)pParam;
 
-    // Type check VARIANT parameter. It should contain a BSTR array
-    // passed by reference. The array must be passed by reference it is
-    // an in-out-parameter.
-    if (V_VT(vArray) != (VT_ARRAY | VT_BSTR)) {
-		return 0;
+    if (pObject == NULL ||
+        !pObject->IsKindOf(RUNTIME_CLASS(CMyObject)))
+    return 1;   // if pObject is not valid*/
 
-        AfxThrowOleDispatchException(1001,
-			_T("Type Mismatch in Parameter. Pass a string array by reference"));
-	}
-    psa = V_ARRAY(vArray);
-    // Check dimensions of the array.
-    if (SafeArrayGetDim(psa) != 1)
-        AfxThrowOleDispatchException(1002,
-        _T("Type Mismatch in Parameter. Pass a one-dimensional array"));
+    // do something with 'pObject'
+	THREADSTRUCT*	ts = (THREADSTRUCT*) pParam;
+	/*for (int i = 0; i<10; i++) {
+		Sleep(500);
+		ts->_this->MessageBox(_T("Got gateway ip: ") + ts->_this->m_GWIP);
+	}*/
 
-    dwTimeStart = GetTickCount();
+	//-----------------------------------------
+    // Declare and initialize variables
+    WSADATA wsaData;
+    int iResult;
 
-    // Get array bounds.
-    hr = SafeArrayGetLBound(psa, 1, &lLBound);
-    if (FAILED(hr))
-        goto error;
-    hr = SafeArrayGetUBound(psa, 1, &lUBound);
-    if (FAILED(hr))
-        goto error;
+    DWORD dwError;
+    int i = 0;
 
-    // Get a pointer to the elements of the array.
-    hr = SafeArrayAccessData(psa, (void HUGEP* FAR*)&pbstr);
-    if (FAILED(hr))
-        goto error;
+    struct hostent *remoteHost;
+    char *host_name = "www.google.com";
+    struct in_addr addr;
 
-    // Bubble sort.
-    cElements = lUBound-lLBound+1;
-    for (i = 0; i < cElements; i++)
-    {
-		CString tmp(pbstr[i]);
-		AfxMessageBox(tmp);
+    char **pAlias;
+	CString MsgTemp;
+
+
+	// Initialize Winsock
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != 0) {
+        AfxMessageBox(_T("WSAStartup failed: ") + iResult);
+        return 1;
     }
 
-    hr = SafeArrayUnaccessData(psa);
-    if (FAILED(hr))
-        goto error;
+	CString temp = host_name;
+	MsgTemp.Format(_T("Calling gethostbyname with %s"), temp);
+    AfxMessageBox(MsgTemp);
+    remoteHost = gethostbyname(host_name);
+    
+    if (remoteHost == NULL) {
+        dwError = WSAGetLastError();
+        if (dwError != 0) {
+            if (dwError == WSAHOST_NOT_FOUND) {
+                AfxMessageBox(_T("Host not found"));
+                return 1;
+            } else if (dwError == WSANO_DATA) {
+                AfxMessageBox(_T("No data record found"));
+                return 1;
+            } else {
+				// dwError is the error
+				AfxMessageBox(_T("Function failed with error: "));
+                return 1;
+            }
+        }
+    } else {
+        AfxMessageBox(_T("Function returned:\n"));
+        AfxMessageBox(_T("\tOfficial name: ")+ CString(remoteHost->h_name));
+        for (pAlias = remoteHost->h_aliases; *pAlias != 0; pAlias++) {
+			//temp = *pAlias;
+			MsgTemp.Format(_T("\tAlternate name #%d: %s"), ++i, CString(*pAlias));
+            AfxMessageBox(MsgTemp);
+        }
+        AfxMessageBox(_T("\tAddress type: "));
+        switch (remoteHost->h_addrtype) {
+        case AF_INET:
+            AfxMessageBox(_T("AF_INET"));
+            break;
+        case AF_NETBIOS:
+            AfxMessageBox(_T("AF_NETBIOS"));
+            break;
+        default:
+			MsgTemp.Format(_T(" %d"), remoteHost->h_addrtype);
+            AfxMessageBox(MsgTemp);
+            break;
+        }
+		MsgTemp.Format(_T("\tAddress length: %d"), remoteHost->h_length);
+        AfxMessageBox(MsgTemp);
 
-    return GetTickCount()-dwTimeStart;
+        i = 0;
+        if (remoteHost->h_addrtype == AF_INET)
+        {
+            while (remoteHost->h_addr_list[i] != 0) {
+                addr.s_addr = *(u_long *) remoteHost->h_addr_list[i++];
+				//temp = ;
+				MsgTemp.Format(_T("\tIP Address #%d: %s"), i, CString(inet_ntoa(addr)));
+				AfxMessageBox(MsgTemp);
+            }
+        }
+        else if (remoteHost->h_addrtype == AF_NETBIOS)
+        {   
+            AfxMessageBox(_T("NETBIOS address was returned"));
+        }
+    }
 
-error:
+	AfxMessageBox(_T("Thread terminating.."));
 
-    AfxThrowOleDispatchException(1003,
-    _T("Unexpected Failure in FastSort method"));
-    return 0;
-}*/
+    return 0;   // thread completed successfully
+}
+
 
 BOOL NetInfoDialog::OnInitDialog() {
 	//CEdit *CGateway, *CPriDNS, *CSecDNS;
 	CDialog::OnInitDialog();
 
 	CIPAddressCtrl *CGateway;
+	THREADSTRUCT *_param = new THREADSTRUCT;
+	_param->_this = this;
+
+	AfxBeginThread (NetInfoDialog::DNSThreadProc, _param);
 	CGateway = (CIPAddressCtrl *) GetDlgItem(IDC_IPADDRESS1);
 
 	// Get Net Info for setting in ipaddress control
 	CString ErrorMsg = GetWMINETINFO();
+
 	if (!ErrorMsg.IsEmpty())
 	MessageBox(_T("In Dialog Error: ") + ErrorMsg);
 
@@ -372,6 +419,7 @@ BOOL NetInfoDialog::OnInitDialog() {
 	if (m_SecDNS == "")
 		m_SecDNS = _T("4.2.2.2");
 
+	SetDlgItemText(IDC_NOREQ, _T("10"));
 	SetDlgItemText(IDC_IPADDRESS1, m_GWIP);
 	SetDlgItemText(IDC_IPADDRESS2, m_PRIDNS);
 	SetDlgItemText(IDC_IPADDRESS3, m_SecDNS);
@@ -394,7 +442,11 @@ BOOL NetInfoDialog::OnInitDialog() {
 	PostMessage(WM_NEXTDLGCTL, (WPARAM) CGateway->GetSafeHwnd(), TRUE);
 	*/
 
-	PostMessage(WM_NEXTDLGCTL, (WPARAM) CGateway->GetSafeHwnd(), TRUE);
+	//PostMessage(WM_NEXTDLGCTL, (WPARAM) CGateway->GetSafeHwnd(), TRUE);
+
+	GetDlgItem(IDC_IPADDRESS2)->EnableWindow(FALSE);
+	GetDlgItem(IDC_IPADDRESS3)->EnableWindow(FALSE);
+
 
 	return TRUE;
 }
@@ -427,9 +479,7 @@ END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog message handlers
-/*
-	Specifies what should happen user click checkbox "ping single host"
-*/
+// Specifies what should happen user click checkbox "ping single host"
 void NetInfoDialog::OnBnClickedCheck2() {
 	if (m_IsSingleHost == TRUE) {
 		SetDlgItemText(IDC_STATIC2, _T("Default Gateway IP"));
