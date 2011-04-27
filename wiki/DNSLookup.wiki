@@ -1,0 +1,15 @@
+#summary One-sentence summary of this page.
+#labels Phase-Implementation
+
+= Introduction =
+
+DNS Lookup has been performed in multi-threading environment to check whether internet is available or not.
+
+
+= Details =
+
+When DNS Lookup is possible in dialogbox a notification is displayed. If not possible it is not displayed.
+
+Program behaviors depends on whether internet is available or not.
+
+Thread exits after DNS response is received.
