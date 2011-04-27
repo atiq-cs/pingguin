@@ -1,11 +1,18 @@
-// Windows XP and later Compilation
-#define WINVER	_WIN32_WINNT_WINXP
-#include <afxwin.h>
+
+// PingGUin.h : main header file for the PROJECT_NAME application
+//
+
+#pragma once
+
+#ifndef __AFXWIN_H__
+	#error "include 'stdafx.h' before including this file for PCH"
+#endif
+
+#include "resource.h"
 #include <winsock2.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
 
-#pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
