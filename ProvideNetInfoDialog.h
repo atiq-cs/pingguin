@@ -1,5 +1,3 @@
-#include <afxwin.h>
-#include "resource.h"
 // For COM
 #define _WIN32_DCOM
 #include <afxdisp.h>			// for AfxThrowOleDispatchException
@@ -20,7 +18,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog dialog
 
-long DisplayStringArray(VARIANT* vArray);
+BOOL DNSLookUpPossible(const char* host_name);
 
 class NetInfoDialog : public CDialog
 {
@@ -33,6 +31,7 @@ public:
 	BOOL IsNotifyOn() { return (m_IsNotifyOn != 0); }
 	CString GetWMINETINFO();
 	static UINT DNSThreadProc( LPVOID pParam );
+	void AdjustNetControls(BOOL IsSingleHost, CString Msg);
 	typedef struct THREADSTRUCT				//structure for passing to the controlling function
 	{
 		NetInfoDialog*	_this;

@@ -9,14 +9,21 @@
 	Last Mod:	17 April, 2011
 */
 
+#include "stdafx.h"
 #include "PingGUIN.h"
+#include "CPingGUin_MainDlg.h"
 #include "ProvideNetInfoDialog.h"
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
+// Global variables declarations
 static CString IpAddress[3];
 static CString ipaddrstr;
 static CStringA ipaddrstrA;
 
-BOOL IsToggleMode = FALSE;
+BOOL IsNotifyOn = FALSE;
 /*	RunStage 1 means current target host is Gateway IP Address
  *	2 means Primary DNS Server
  *	3 means Secondary DNS Server
@@ -300,7 +307,7 @@ void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DW
 			default:
 				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("IcmpSendEcho returned error: %ld\r\n"),  errorno);
 		}
-		if (IsToggleMode == FALSE) {
+		if (IsNotifyOn == FALSE) {
 			if (pMainWnd->CountResponse >= 48) {
 				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target client is possibly down.\r\n\r\nClick close button to quit the program."));
 				pMainWnd->PingQuit(pstr);
@@ -321,13 +328,25 @@ void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DW
 
 
 BOOL CSAApp::InitInstance() {
+		// InitCommonControlsEx() is required on Windows XP if an application
+	// manifest specifies use of ComCtl32.dll version 6 or later to enable
+	// visual styles.  Otherwise, any window creation will fail.
+	INITCOMMONCONTROLSEX InitCtrls;
+	InitCtrls.dwSize = sizeof(InitCtrls);
+	// Set this to include all the common control classes you want to use
+	// in your application.
+	InitCtrls.dwICC = ICC_WIN95_CLASSES;
+	InitCommonControlsEx(&InitCtrls);
+
+	CWinApp::InitInstance();
+
 	BOOL ClProvided = FALSE;
 	CCustomCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
 	if (cmdInfo.GetOption (_T("t"))) {
 		//Write code to display help
-		IsToggleMode = TRUE;
+		IsNotifyOn = TRUE;
 	}
 
 	if (cmdInfo.GetOption (_T("gw"), ipaddrstr)) {
@@ -365,7 +384,7 @@ BOOL CSAApp::InitInstance() {
 			case IDOK:
 				// Retrieve available information
 				SADlg.GetNetInfo(IpAddress);
-				IsToggleMode = SADlg.IsNotifyOn();
+				IsNotifyOn = SADlg.IsNotifyOn();
 				break;
 			case IDCANCEL:
 				return FALSE;
@@ -377,12 +396,21 @@ BOOL CSAApp::InitInstance() {
 
 	}
 
-	//LoadIcon(IDI_ICON1);
+	CPingGUin_MainDlg dlg;
+	m_pMainWnd = &dlg;
+	INT_PTR nResponse = dlg.DoModal();
+	if (nResponse == IDOK)
+	{
+		// TODO: Place code here to handle when the dialog is
+		//  dismissed with OK
+	}
+
+	/*LoadIcon(IDI_ICON1);
 	m_pMainWnd = new SAFrame;
 	m_pMainWnd->ShowWindow(SW_SHOW);
-	m_pMainWnd->UpdateWindow();
+	m_pMainWnd->UpdateWindow();*/
 
-	return TRUE;
+	return FALSE;
 }
 
 CSAApp theApp;
