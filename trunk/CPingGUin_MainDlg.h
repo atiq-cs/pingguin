@@ -11,6 +11,7 @@ class CPingGUin_MainDlg : public CDialogEx
 // Construction
 public:
 	CPingGUin_MainDlg(CWnd* pParent = NULL);	// standard constructor
+	void InitVars();
 
 // Dialog Data
 	enum { IDD = IDD_PINGGUIN_DIALOGBASED_DIALOG };

@@ -48,6 +48,8 @@ protected:
 	virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//{{AFX_MSG(NetInfoDialog)
+	afx_msg void OnBnClickedSingleHostCheck();
+	afx_msg void OnClose();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
@@ -57,8 +59,7 @@ private:
 
 	BOOL m_IsNotifyOn;
 	BOOL m_IsSingleHost;
-public:
-	afx_msg void OnBnClickedCheck2();
+	BOOL IsWindowClosed;
 };
 
 //{{AFX_INSERT_LOCATION}}

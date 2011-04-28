@@ -396,9 +396,12 @@ BOOL CSAApp::InitInstance() {
 
 	}
 
-	CPingGUin_MainDlg dlg;
-	m_pMainWnd = &dlg;
-	INT_PTR nResponse = dlg.DoModal();
+	CPingGUin_MainDlg SAMainWindlg;
+	m_pMainWnd = &SAMainWindlg;
+	// Transfer info from previous dialog
+	SAMainWindlg.InitVars();
+
+	INT_PTR nResponse = SAMainWindlg.DoModal();
 	if (nResponse == IDOK)
 	{
 		// TODO: Place code here to handle when the dialog is

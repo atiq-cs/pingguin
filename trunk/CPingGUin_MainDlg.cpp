@@ -77,6 +77,10 @@ void CPingGUin_MainDlg::OnPaint()
 	}
 }
 
+void CPingGUin_MainDlg::InitVars() {
+	//MessageBox(_T("This is a test."));
+}
+
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
 HCURSOR CPingGUin_MainDlg::OnQueryDragIcon()
