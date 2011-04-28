@@ -20,6 +20,7 @@ NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) {
 		// NOTE: the ClassWizard will add member initialization here
 	m_IsSingleHost = TRUE;
 	m_IsNotifyOn = FALSE;
+	IsWindowClosed = FALSE;
 	//}}AFX_DATA_INIT
 }
 
@@ -306,11 +307,16 @@ UINT NetInfoDialog::DNSThreadProc( LPVOID pParam )
 	//-----------------------------------------
     // Declare and initialize variables
 	if (DNSLookUpPossible("www.google.com")) {
-		ts->_this->AdjustNetControls(true, _T("Notice: Internet is available"));
+		if (::IsWindow(ts->_this->m_hWnd) == TRUE) {
+		//if (ts->_this->IsWindowClosed == FALSE) {
+			//AfxMessageBox(_T("Window is active, dns update!!"));
+			ts->_this->AdjustNetControls(true, _T("Notice: Internet is available"));
+		}
 		//AfxMessageBox(_T("DNS Lookup successful!"));
 	}
 	else {
-		ts->_this->AdjustNetControls(false, _T("Notice: Internet is not available"));
+		if (::IsWindow(ts->_this->m_hWnd) == TRUE)
+			ts->_this->AdjustNetControls(false, _T("Notice: Internet is not available"));
 	}
 	//AfxMessageBox(_T("Thread terminating.."));
 
@@ -401,13 +407,14 @@ BEGIN_MESSAGE_MAP(NetInfoDialog, CDialog)
 	//{{AFX_MSG_MAP(NetInfoDialog)
 		// NOTE: the ClassWizard will add message map macros here
 	//}}AFX_MSG_MAP
-	ON_BN_CLICKED(IDC_CHECK2, &NetInfoDialog::OnBnClickedCheck2)
+	ON_BN_CLICKED(IDC_CHECK2, &NetInfoDialog::OnBnClickedSingleHostCheck)
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog message handlers
 // Specifies what should happen user click checkbox "ping single host"
-void NetInfoDialog::OnBnClickedCheck2() {
+void NetInfoDialog::OnBnClickedSingleHostCheck() {
 	// true means toggle true
 	if (m_IsSingleHost == TRUE)
 		m_IsSingleHost = FALSE;
@@ -415,6 +422,13 @@ void NetInfoDialog::OnBnClickedCheck2() {
 		m_IsSingleHost = TRUE;
 
 	AdjustNetControls(m_IsSingleHost, _T(""));
+}
+
+void NetInfoDialog::OnClose() {
+	MessageBox(_T("Dialog closed."));
+	IsWindowClosed = FALSE;
+
+	CDialog::OnClose();
 }
 
 void NetInfoDialog::AdjustNetControls(BOOL IsSingleHost, CString Msg) {
