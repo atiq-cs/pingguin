@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "CPingGUin_MainDlg.h"
 #include "afxdialogex.h"
+#include "SANetUtil.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -17,16 +18,25 @@
 
 CPingGUin_MainDlg::CPingGUin_MainDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CPingGUin_MainDlg::IDD, pParent)
+	, noReq(0)
+	, noReplies(0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+}
+
+CPingGUin_MainDlg::~CPingGUin_MainDlg() {
+	KillTimer(m_nWindowTimer);
 }
 
 void CPingGUin_MainDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	//DDX_Text(pDX, IDC_REQ, noReq);
+	//DDX_Text(pDX, IDC_Reply, noReplies);
 }
 
 BEGIN_MESSAGE_MAP(CPingGUin_MainDlg, CDialogEx)
+	ON_WM_TIMER()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 END_MESSAGE_MAP()
@@ -44,6 +54,7 @@ BOOL CPingGUin_MainDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+	m_nWindowTimer = SetTimer(1, 2000, NULL);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -77,8 +88,25 @@ void CPingGUin_MainDlg::OnPaint()
 	}
 }
 
-void CPingGUin_MainDlg::InitVars() {
-	//MessageBox(_T("This is a test."));
+void CPingGUin_MainDlg::InitVars(NetInfoDialog *obj) {
+	mainIP = obj->m_GWIP;
+	DNS[0] = obj->m_PRIDNS;
+	DNS[1] = obj->m_SecDNS;
+}
+
+void CPingGUin_MainDlg::OnTimer(UINT_PTR nIDEvent) {
+	// increment Request Number
+	noReq++;
+	CString temp;
+	temp.Format(_T("%d"), noReq);
+	SetDlgItemText(IDC_REQ, temp);
+	// received reply
+	if (PingHost(mainIP) == 1) {
+	// increment Reply number
+		temp.Format(_T("%d"), noReplies);
+		SetDlgItemText(IDC_REPLY, temp);
+		noReplies++;
+	}
 }
 
 // The system calls this function to obtain the cursor to display while the user drags
@@ -87,4 +115,3 @@ HCURSOR CPingGUin_MainDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
-

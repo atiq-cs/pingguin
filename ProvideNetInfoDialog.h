@@ -1,10 +1,3 @@
-// For COM
-#define _WIN32_DCOM
-#include <afxdisp.h>			// for AfxThrowOleDispatchException
-#include <comdef.h>
-#include <Wbemidl.h>
-# pragma comment(lib, "wbemuuid.lib")
-
 
 #if !defined(AFX_MYDIALOG_H__20B59A5E_FBE6_4A1C_A6B7_FDC199FE74EC__INCLUDED_)
 #define AFX_MYDIALOG_H__20B59A5E_FBE6_4A1C_A6B7_FDC199FE74EC__INCLUDED_
@@ -52,7 +45,8 @@ protected:
 	afx_msg void OnClose();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
-private:
+
+public:
 	CString m_GWIP;
 	CString m_PRIDNS;
 	CString m_SecDNS;
