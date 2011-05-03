@@ -9,13 +9,6 @@
 #endif
 
 #include "resource.h"
-#include <winsock2.h>
-#include <iphlpapi.h>
-#include <icmpapi.h>
-
-#pragma comment(lib, "iphlpapi.lib")
-#pragma comment(lib, "ws2_32.lib")
-
 #define ID_TIMER 101
 #define MSGSIZE	1500
 
@@ -40,7 +33,7 @@ protected:
 class SAFrame : public CFrameWnd
 {
 public:
-	SAFrame ();
+	SAFrame () {};
 
 protected:
 	BOOL PreCreateWindow(CREATESTRUCT &cs);
@@ -49,7 +42,6 @@ protected:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnClose();
 	DECLARE_MESSAGE_MAP()
-	static void CALLBACK EXPORT TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DWORD dwTime);
 	LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 
 	TCHAR TextStr[2 * MSGSIZE];

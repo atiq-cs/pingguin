@@ -5,6 +5,12 @@
 #include <afxcmn.h>
 #include "resource.h"
 #include "ProvideNetInfoDialog.h"
+// For COM
+#define _WIN32_DCOM
+#include <afxdisp.h>			// for AfxThrowOleDispatchException
+#include <comdef.h>
+#include <Wbemidl.h>
+# pragma comment(lib, "wbemuuid.lib")
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -398,7 +404,7 @@ void NetInfoDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_IPADDRESS1, m_GWIP);
 	DDX_Text(pDX, IDC_IPADDRESS2, m_PRIDNS);
 	DDX_Text(pDX, IDC_IPADDRESS3, m_SecDNS);
-	DDX_Check(pDX, IDC_CHECK1, m_IsNotifyOn);
+	DDX_Check(pDX, IDC_CHECKNOTIFY, m_IsNotifyOn);
 	//}}AFX_DATA_MAP
 }
 
@@ -407,7 +413,7 @@ BEGIN_MESSAGE_MAP(NetInfoDialog, CDialog)
 	//{{AFX_MSG_MAP(NetInfoDialog)
 		// NOTE: the ClassWizard will add message map macros here
 	//}}AFX_MSG_MAP
-	ON_BN_CLICKED(IDC_CHECK2, &NetInfoDialog::OnBnClickedSingleHostCheck)
+	ON_BN_CLICKED(IDC_CHECKISP, &NetInfoDialog::OnBnClickedSingleHostCheck)
 	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
