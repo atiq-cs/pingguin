@@ -4,6 +4,7 @@
 
 #pragma once
 #include "ProvideNetInfoDialog.h"
+#include "afxcmn.h"
 
 // CPingGUin_MainDlg dialog
 class CPingGUin_MainDlg : public CDialogEx
@@ -15,14 +16,17 @@ public:
 	void InitVars(NetInfoDialog *obj);
 
 // Dialog Data
-	enum { IDD = IDD_PINGGUIN_DIALOGBASED_DIALOG };
+	enum { IDD = IDD_MAINDLG };
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 // Implementation
 	HICON m_hIcon;
+	// Handle for progress control required to set range and stepit
+	CProgressCtrl* ProgressPingReq;
 
-	// Generated message map functions
+public:
+// Generated message map functions
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
@@ -37,4 +41,8 @@ private:
 	CString mainIP;
 	CString DNS[2];
 	UINT_PTR m_nWindowTimer;
+	// Whether to ping a single target or ISP target chain
+	BOOL IsSingleHost;
+	// Maximum number of requests to send set by user
+	int MaxPingReqs;
 };
