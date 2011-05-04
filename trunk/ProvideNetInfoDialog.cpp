@@ -21,12 +21,10 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog dialog
 
-NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) {
+NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) , m_MaxPingReqs(10), m_IsSingleHost(TRUE), m_IsNotifyOn(FALSE)
+{
 	//{{AFX_DATA_INIT(NetInfoDialog)
 		// NOTE: the ClassWizard will add member initialization here
-	m_IsSingleHost = TRUE;
-	m_IsNotifyOn = FALSE;
-	IsWindowClosed = FALSE;
 	//}}AFX_DATA_INIT
 }
 
@@ -358,7 +356,6 @@ BOOL NetInfoDialog::OnInitDialog() {
 		m_SecDNS = _T("4.2.2.2");
 
 	SetDlgItemText(IDC_NOTIFYBOX, _T("Checking internet availibility.."));
-	SetDlgItemText(IDC_NOREQ, _T("10"));
 	SetDlgItemText(IDC_IPADDRESS1, m_GWIP);
 	SetDlgItemText(IDC_IPADDRESS2, m_PRIDNS);
 	SetDlgItemText(IDC_IPADDRESS3, m_SecDNS);
@@ -400,12 +397,14 @@ void NetInfoDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(NetInfoDialog)
-		// NOTE: the ClassWizard will add DDX and DDV calls here
+	// NOTE: the ClassWizard will add DDX and DDV calls here
 	DDX_Text(pDX, IDC_IPADDRESS1, m_GWIP);
 	DDX_Text(pDX, IDC_IPADDRESS2, m_PRIDNS);
 	DDX_Text(pDX, IDC_IPADDRESS3, m_SecDNS);
 	DDX_Check(pDX, IDC_CHECKNOTIFY, m_IsNotifyOn);
 	//}}AFX_DATA_MAP
+	DDX_Text(pDX, IDC_NOREQ, m_MaxPingReqs);
+	DDV_MinMaxInt(pDX, m_MaxPingReqs, 1, 100);
 }
 
 
@@ -432,7 +431,6 @@ void NetInfoDialog::OnBnClickedSingleHostCheck() {
 
 void NetInfoDialog::OnClose() {
 	MessageBox(_T("Dialog closed."));
-	IsWindowClosed = FALSE;
 
 	CDialog::OnClose();
 }

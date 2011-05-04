@@ -53,7 +53,8 @@ public:
 
 	BOOL m_IsNotifyOn;
 	BOOL m_IsSingleHost;
-	BOOL IsWindowClosed;
+	// Stores the number of requests to send set by user
+	int m_MaxPingReqs;
 };
 
 //{{AFX_INSERT_LOCATION}}

@@ -55,6 +55,111 @@ BOOL CCustomCommandLineInfo::GetOption (LPCTSTR option) {
 	return GetOption (option, CString ());
 }
 
+BOOL CSAApp::InitInstance() {
+		// InitCommonControlsEx() is required on Windows XP if an application
+	// manifest specifies use of ComCtl32.dll version 6 or later to enable
+	// visual styles.  Otherwise, any window creation will fail.
+	INITCOMMONCONTROLSEX InitCtrls;
+	InitCtrls.dwSize = sizeof(InitCtrls);
+	// Set this to include all the common control classes you want to use
+	// in your application.
+	InitCtrls.dwICC = ICC_WIN95_CLASSES;
+	InitCommonControlsEx(&InitCtrls);
+
+	CWinApp::InitInstance();
+
+	BOOL ClProvided = FALSE;
+	CCustomCommandLineInfo cmdInfo;
+	ParseCommandLine(cmdInfo);
+
+	if (cmdInfo.GetOption (_T("t"))) {
+		//Write code to display help
+		IsNotifyOn = TRUE;
+	}
+
+	if (cmdInfo.GetOption (_T("gw"), ipaddrstr)) {
+		//Write code to display help
+		IpAddress[0] = ipaddrstr;
+		ClProvided = TRUE;
+	}
+
+	if (cmdInfo.GetOption (_T("pd"), ipaddrstr)) {
+		//Write code to display help
+		IpAddress[1] = ipaddrstr;
+		ClProvided = TRUE;
+	}
+
+	if (cmdInfo.GetOption (_T("sd"), ipaddrstr)) {
+		//Write code to display help
+		IpAddress[2] = ipaddrstr;
+		ClProvided = TRUE;
+	}
+
+	// Create the main window dialog required for data transfer
+	CPingGUin_MainDlg *SAMainWindlg;
+
+	if (ClProvided == FALSE) {
+		// This is the way to create modal dialog
+		NetInfoDialog* SADlg = new NetInfoDialog;
+		INT_PTR nRet = -1;
+		nRet = SADlg->DoModal();
+
+		// Handle the return value from DoModal
+		switch (nRet) {
+			case -1: 
+				AfxMessageBox(_T("Dialog box could not be created!"));
+				break;
+			case IDABORT:
+				// Do something
+				break;
+			case IDOK:
+				// Transfer info from previous dialog
+				SAMainWindlg= new CPingGUin_MainDlg;
+				SAMainWindlg->InitVars(SADlg);
+				break;
+			case IDCANCEL:
+				return FALSE;
+				break;
+			default:
+				// Do something
+				break;
+		};
+		delete SADlg;
+	}
+
+	m_pMainWnd = SAMainWindlg;
+
+	INT_PTR nResponse = SAMainWindlg->DoModal();
+	if (nResponse == IDOK)
+	{
+		// TODO: Place code here to handle when the dialog is
+		//  dismissed with OK
+		AfxMessageBox(_T("You clicked close!"));
+	}
+	AfxMessageBox(_T("Reached here!"));
+	delete SAMainWindlg;
+	SAMainWindlg = NULL;
+	m_pMainWnd = NULL;
+
+	/*LoadIcon(IDI_ICON1);
+	m_pMainWnd = new SAFrame;
+	m_pMainWnd->ShowWindow(SW_SHOW);
+	m_pMainWnd->UpdateWindow();*/
+
+	return FALSE;
+}
+
+CSAApp theApp;
+
+/*void SAFrame::PingQuit(TCHAR *str) {
+	if (!IsWindowVisible())
+		ShowWindow(SW_RESTORE);
+	PostMessage(WM_PAINT, (LPARAM)0, (LPARAM)0);
+	KillTimer(ID_TIMER);
+	SetForegroundWindow();
+	SetWindowPos(&wndTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+}
+
 BOOL SAFrame::PreCreateWindow(CREATESTRUCT &cs) {
 	// call default implementation
 	if( !CFrameWnd::PreCreateWindow(cs) )
@@ -158,103 +263,4 @@ LRESULT SAFrame::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
    return CFrameWnd::WindowProc(message, wParam, lParam);
 }
 
-void PingQuit(SAFrame* pMainWnd, TCHAR *str);
-
-BOOL CSAApp::InitInstance() {
-		// InitCommonControlsEx() is required on Windows XP if an application
-	// manifest specifies use of ComCtl32.dll version 6 or later to enable
-	// visual styles.  Otherwise, any window creation will fail.
-	INITCOMMONCONTROLSEX InitCtrls;
-	InitCtrls.dwSize = sizeof(InitCtrls);
-	// Set this to include all the common control classes you want to use
-	// in your application.
-	InitCtrls.dwICC = ICC_WIN95_CLASSES;
-	InitCommonControlsEx(&InitCtrls);
-
-	CWinApp::InitInstance();
-
-	BOOL ClProvided = FALSE;
-	CCustomCommandLineInfo cmdInfo;
-	ParseCommandLine(cmdInfo);
-
-	if (cmdInfo.GetOption (_T("t"))) {
-		//Write code to display help
-		IsNotifyOn = TRUE;
-	}
-
-	if (cmdInfo.GetOption (_T("gw"), ipaddrstr)) {
-		//Write code to display help
-		IpAddress[0] = ipaddrstr;
-		ClProvided = TRUE;
-	}
-
-	if (cmdInfo.GetOption (_T("pd"), ipaddrstr)) {
-		//Write code to display help
-		IpAddress[1] = ipaddrstr;
-		ClProvided = TRUE;
-	}
-
-	if (cmdInfo.GetOption (_T("sd"), ipaddrstr)) {
-		//Write code to display help
-		IpAddress[2] = ipaddrstr;
-		ClProvided = TRUE;
-	}
-
-	// Create the main window dialog required for data transfer
-	CPingGUin_MainDlg SAMainWindlg;
-
-	if (ClProvided == FALSE) {
-		// This is the way to create modal dialog
-		NetInfoDialog SADlg;
-		INT_PTR nRet = -1;
-		nRet = SADlg.DoModal();
-
-		// Handle the return value from DoModal
-		switch (nRet) {
-			case -1: 
-				AfxMessageBox(_T("Dialog box could not be created!"));
-				break;
-			case IDABORT:
-				// Do something
-				break;
-			case IDOK:
-				// Transfer info from previous dialog
-				SAMainWindlg.InitVars(&SADlg);
-				break;
-			case IDCANCEL:
-				return FALSE;
-				break;
-			default:
-				// Do something
-				break;
-		};
-
-	}
-
-	m_pMainWnd = &SAMainWindlg;
-
-	INT_PTR nResponse = SAMainWindlg.DoModal();
-	if (nResponse == IDOK)
-	{
-		// TODO: Place code here to handle when the dialog is
-		//  dismissed with OK
-	}
-
-	/*LoadIcon(IDI_ICON1);
-	m_pMainWnd = new SAFrame;
-	m_pMainWnd->ShowWindow(SW_SHOW);
-	m_pMainWnd->UpdateWindow();*/
-
-	return FALSE;
-}
-
-CSAApp theApp;
-
-void SAFrame::PingQuit(TCHAR *str) {
-	if (!IsWindowVisible())
-		ShowWindow(SW_RESTORE);
-	PostMessage(WM_PAINT, (LPARAM)0, (LPARAM)0);
-	KillTimer(ID_TIMER);
-	SetForegroundWindow();
-	SetWindowPos(&wndTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-}
+*/
