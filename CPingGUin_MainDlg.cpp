@@ -30,6 +30,7 @@ CPingGUin_MainDlg::CPingGUin_MainDlg(CWnd* pParent /*=NULL*/)
 	, noReplies(0)
 	, IsSingleHost(false)
 	, MaxPingReqs(0)
+	, RunStage(0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -68,8 +69,15 @@ BOOL CPingGUin_MainDlg::OnInitDialog()
 	ProgressPingReq->SetStep(1);
 	ProgressPingReq->SetPos(1);
 
-	SetDlgItemText(IDC_TARGETTYPE, _T("Default Gateway"));
-	SetDlgItemText(IDC_TARGETIP, mainIP);
+	PingIP = &mainIP;
+	SetDlgItemText(IDC_TARGETIP, *PingIP);
+
+	if (IsSingleHost) {
+		SetDlgItemText(IDC_TARGETTYPE, _T("Single Host"));
+		RunStage = 3;
+	}
+	else
+		SetDlgItemText(IDC_TARGETTYPE, _T("Default Gateway"));
 
 	m_nWindowTimer = SetTimer(1, 2000, NULL);
 
@@ -120,6 +128,25 @@ void CPingGUin_MainDlg::OnTimer(UINT_PTR nIDEvent) {
 	//if (noReq==0)
 		//SetDlgItemText(IDC_TARGETIP, mainIP);
 
+	// if requests reached max
+	if (noReq == 0) {
+		ProgressPingReq->SetPos(1);
+		switch (RunStage) {
+		case 1:
+			PingIP = &DNS[0];
+			SetDlgItemText(IDC_TARGETTYPE, _T("Primary DNS Server"));
+			SetDlgItemText(IDC_TARGETIP, *PingIP);
+			break;
+		case 2:
+			SetDlgItemText(IDC_TARGETTYPE, _T("Secondary DNS Server"));
+			PingIP = &DNS[1];
+			SetDlgItemText(IDC_TARGETIP, *PingIP);
+			break;
+		default:
+			break;
+		}
+	}
+
 	// increment Request Number
 	noReq++;
 	// Progress the progress control
@@ -128,7 +155,7 @@ void CPingGUin_MainDlg::OnTimer(UINT_PTR nIDEvent) {
 	temp.Format(_T("%d"), noReq);
 	SetDlgItemText(IDC_REQ, temp);
 	// received reply
-	if (PingHost(mainIP) == 1) {
+	if (PingHost(*PingIP) == 1) {
 	// increment Reply number
 		noReplies++;
 		// Update number of reply static box
@@ -138,6 +165,10 @@ void CPingGUin_MainDlg::OnTimer(UINT_PTR nIDEvent) {
 
 	// if requests reached max
 	if (noReq == MaxPingReqs) {
+		noReq = 0;
+		noReplies = 0;
+		RunStage++;
+		if (RunStage >= 3)
 			KillTimer(m_nWindowTimer);
 	}
 	else
