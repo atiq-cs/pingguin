@@ -40,9 +40,12 @@ private:
 	int noReplies;
 	CString mainIP;
 	CString DNS[2];
+	CString *PingIP;
 	UINT_PTR m_nWindowTimer;
 	// Whether to ping a single target or ISP target chain
 	BOOL IsSingleHost;
 	// Maximum number of requests to send set by user
 	int MaxPingReqs;
+	// which stage the app is running on
+	BYTE RunStage;
 };
