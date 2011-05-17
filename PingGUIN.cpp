@@ -1,22 +1,26 @@
 /*
 	Author:		Saint Atique
-	Desc:		Use of timer
-				Implementation of timer using callback procedure
-				Use of edit box, OnCreate and OnPaint
-				Impelemnetation of ICMP echo,
-				DNS
+	Desc:		Application includes following standard implementations
+				1. System tray implementation
+				2. DNS Lookup
+				3. Use of Timer
 	Site:		http://saosx.com
 	Last Mod:	17 April, 2011
 */
 
 #include "stdafx.h"
 #include "PingGUIN.h"
-#include "CPingGUin_MainDlg.h"
 #include "ProvideNetInfoDialog.h"
+#include "CPingGUin_MainDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
 #endif
+
+/////////////////////////////////////////////////////////////////////////////
+// PingGUIn App
 
 // Global variables declarations
 static CString IpAddress[3];
@@ -56,7 +60,13 @@ BOOL CCustomCommandLineInfo::GetOption (LPCTSTR option) {
 }
 
 BOOL CSAApp::InitInstance() {
-		// InitCommonControlsEx() is required on Windows XP if an application
+	/* sdk sample menu gets on background
+	trying mine one from CDEject project*/
+	AfxEnableControlContainer();
+	InitContextMenuManager ();
+	CMFCVisualManager::SetDefaultManager (RUNTIME_CLASS (CMFCVisualManagerOffice2003));
+	
+	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
 	// visual styles.  Otherwise, any window creation will fail.
 	INITCOMMONCONTROLSEX InitCtrls;
@@ -130,13 +140,14 @@ BOOL CSAApp::InitInstance() {
 	m_pMainWnd = SAMainWindlg;
 
 	INT_PTR nResponse = SAMainWindlg->DoModal();
+	/* Commented to avoid the sound during closing the window
 	if (nResponse == IDOK)
 	{
 		// TODO: Place code here to handle when the dialog is
 		//  dismissed with OK
 		AfxMessageBox(_T("You clicked close!"));
 	}
-	AfxMessageBox(_T("Reached here!"));
+	AfxMessageBox(_T("Reached here!"));*/
 	delete SAMainWindlg;
 	SAMainWindlg = NULL;
 	m_pMainWnd = NULL;

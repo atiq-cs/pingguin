@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "ProvideNetInfoDialog.h"
-#include "afxcmn.h"
+/*#include "ProvideNetInfoDialog.h"
+#include "afxcmn.h"*/
 
 // CPingGUin_MainDlg dialog
 class CPingGUin_MainDlg : public CDialogEx
@@ -21,16 +21,40 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 // Implementation
+	//virtual BOOL PreTranslateMessage(MSG* pMsg);
 	HICON m_hIcon;
 	// Handle for progress control required to set range and stepit
 	CProgressCtrl* ProgressPingReq;
 
-public:
-// Generated message map functions
+	// added for system tray
+	//CToolTipCtrl   _ToolTipCtrl;
+	//NOTIFYICONDATA m_nid;
+	BOOL           _bVisible;
+
+	/*BOOL SetIconAndTitleForBalloonTip( CToolTipCtrl *pToolTipCtrl,
+		                               int          tti_ICON, 
+									   CString      title );
+
+	void LoadToTray( CWnd*	 pWnd, 
+		             UINT	 uCallbackMessage,
+					 CString sInfoTitle,
+					 CString sInfo,
+					 CString sTip,
+			         int     uTimeout,
+					 HICON	 icon );*/
+	// sys tray end
+	void HideApp();
+	void OnTrayContextMenu ();
+
+    // Generated message map functions
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	// sys tray start
+	//afx_msg void OnWindowPosChanging(WINDOWPOS FAR* lpwndpos);
+	afx_msg LRESULT OnTrayNotify ( WPARAM wParam, LPARAM lParam ) ;
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
 
 private:
@@ -48,4 +72,8 @@ private:
 	int MaxPingReqs;
 	// which stage the app is running on
 	BYTE RunStage;
+	// Currently selected static box of the report group box
+	CStatic *CurReportStatic;
+	// 
+	CString ReportStaticDefaultText;
 };

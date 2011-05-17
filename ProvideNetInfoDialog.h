@@ -21,7 +21,7 @@ public:
 	//NetInfoDialog::NetInfoDialog(UINT nIDTemplate);
 	NetInfoDialog();
 	void GetNetInfo(CString* strArray);
-	BOOL IsNotifyOn() { return (m_IsNotifyOn != 0); }
+	//BOOL IsNotifyOn() { return (m_IsNotifyOn != 0); }
 	CString GetWMINETINFO();
 	static UINT DNSThreadProc( LPVOID pParam );
 	void AdjustNetControls(BOOL IsSingleHost, CString Msg);
@@ -42,7 +42,6 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//{{AFX_MSG(NetInfoDialog)
 	afx_msg void OnBnClickedSingleHostCheck();
-	afx_msg void OnClose();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
