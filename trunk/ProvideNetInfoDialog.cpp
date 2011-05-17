@@ -1,16 +1,17 @@
 // NetInfoDialog.cpp : implementation file
 //
-
+#include "stdafx.h"
+#include "PingGUIN.h"
+#include "ProvideNetInfoDialog.h"
+#include "CPingGUin_MainDlg.h"
 #include <afxwin.h>
 #include <afxcmn.h>
-#include "resource.h"
-#include "ProvideNetInfoDialog.h"
 // For COM
 #define _WIN32_DCOM
 #include <afxdisp.h>			// for AfxThrowOleDispatchException
 #include <comdef.h>
 #include <Wbemidl.h>
-# pragma comment(lib, "wbemuuid.lib")
+#pragma comment(lib, "wbemuuid.lib")
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,6 +21,14 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog dialog
+
+BEGIN_MESSAGE_MAP(NetInfoDialog, CDialog)
+	//{{AFX_MSG_MAP(NetInfoDialog)
+		// NOTE: the ClassWizard will add message map macros here
+	ON_BN_CLICKED(IDC_CHECKISP, &NetInfoDialog::OnBnClickedSingleHostCheck)
+	ON_WM_CLOSE()
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
 
 NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) , m_MaxPingReqs(10), m_IsSingleHost(TRUE), m_IsNotifyOn(FALSE)
 {
@@ -408,14 +417,6 @@ void NetInfoDialog::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(NetInfoDialog, CDialog)
-	//{{AFX_MSG_MAP(NetInfoDialog)
-		// NOTE: the ClassWizard will add message map macros here
-	//}}AFX_MSG_MAP
-	ON_BN_CLICKED(IDC_CHECKISP, &NetInfoDialog::OnBnClickedSingleHostCheck)
-	ON_WM_CLOSE()
-END_MESSAGE_MAP()
-
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog message handlers
 // Specifies what should happen user click checkbox "ping single host"
@@ -429,11 +430,11 @@ void NetInfoDialog::OnBnClickedSingleHostCheck() {
 	AdjustNetControls(m_IsSingleHost, _T(""));
 }
 
-void NetInfoDialog::OnClose() {
+/*void NetInfoDialog::OnClose() {
 	MessageBox(_T("Dialog closed."));
 
 	CDialog::OnClose();
-}
+}*/
 
 void NetInfoDialog::AdjustNetControls(BOOL IsSingleHost, CString Msg) {
 	if (IsSingleHost == TRUE) {

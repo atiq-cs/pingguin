@@ -10,6 +10,11 @@
 
 #include "resource.h"
 
+/////////////////////////////////////////////////////////////////////////////
+// CTrayMenuApp:
+// See TrayMenu.cpp for the implementation of this class
+//
+
 class CCustomCommandLineInfo : public CCommandLineInfo {
 public:
 	CCustomCommandLineInfo() {}
@@ -28,7 +33,9 @@ protected:
 	virtual void ParseParam (const TCHAR* pszParam, BOOL bFlag, BOOL bLast);
 };
 
-class CSAApp: public CWinApp {
+class CSAApp: public CWinAppEx {
 public:
-	BOOL InitInstance();
+	virtual BOOL InitInstance();
 };
+
+extern CSAApp theApp;
