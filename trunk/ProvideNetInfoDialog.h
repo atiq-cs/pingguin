@@ -11,8 +11,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog dialog
 
-BOOL DNSLookUpPossible(const char* host_name);
-
 class NetInfoDialog : public CDialog
 {
 // Construction

@@ -15,8 +15,8 @@
 #include "stdafx.h"
 #include "PingGUIN.h"
 #include "ProvideNetInfoDialog.h"
-#include "CPingGUin_MainDlg.h"
 #include "SANetUtil.h"
+#include "CPingGUin_MainDlg.h"
 #include "afxdialogex.h"
 #include "SATaskBarNotification.h"
 
@@ -26,8 +26,10 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#define UM_TRAYNOTIFY	(WM_USER + 1)
-#define ID_MINTRAYICON 0x201
+#define UM_TRAYNOTIFY	(WM_USER + 200)
+#define ID_MINTRAYICON (WM_USER + 201)
+#define PING_TIMER_ID (WM_USER + 202)
+#define DNS_TIMER_ID (WM_USER + 203)
 
 /////////////////////////////////////////////////////////////////////////////
 // CPingGUin_MainDlg dialog
@@ -48,10 +50,11 @@ CPingGUin_MainDlg::CPingGUin_MainDlg(CWnd* pParent /*=NULL*/)
 	, noReq(0)
 	, noReplies(0)
 	, IsSingleHost(false)
+	, IsNotifyEnabled(false)
 	, MaxPingReqs(0)
 	, RunStage(0)
 	, CurReportStatic(NULL)
-	, _bVisible(TRUE)
+	, m_DlgVisible(TRUE)
 {
 	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -68,8 +71,6 @@ void CPingGUin_MainDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	//DDX_Control(pDX, IDC_PINGPROGRESS, ProgressPingReq);
 }
-
-// CPingGUin_MainDlg message handlers
 
 BOOL CPingGUin_MainDlg::OnInitDialog()
 {
@@ -108,6 +109,7 @@ BOOL CPingGUin_MainDlg::OnInitDialog()
 	PingIP = &mainIP;
 	SetDlgItemText(IDC_TARGETIP, *PingIP);
 
+	// Static text on the dialog box changes according to selection of singlehost or not
 	if (IsSingleHost) {
 		ReportStaticDefaultText = _T("Single Host");
 		SetDlgItemText(IDC_TARGETTYPE, ReportStaticDefaultText);
@@ -121,7 +123,18 @@ BOOL CPingGUin_MainDlg::OnInitDialog()
 		CurReportStatic = (CStatic *) GetDlgItem(IDC_REPORT_DG);
 	}
 
-	m_nWindowTimer = SetTimer(1, 2000, NULL);
+	if (IsNotifyEnabled) {
+		SetDlgItemText(IDC_STATUSBAR, _T("You can minimize the window if you wish. We will notify you when internet is available."));
+		//AfxBeginThread(WorkerThreadProc,NULL,THREAD_PRIORITY_NORMAL,0,0,NULL);
+		//AfxBeginThread(WorkerThreadDNSLookUpProc, this);
+	}
+
+	// add the icon in taskbar before showing notification
+	if (MyTaskBarAddIcon(this->GetSafeHwnd(), ID_MINTRAYICON, UM_TRAYNOTIFY, m_hIcon, _T("PingGUIn Net Notifier"))==FALSE)
+		MessageBox(_T("Could not create taskbar icon!"));
+
+	m_PingTimer = SetTimer(PING_TIMER_ID, 2000, NULL);
+	m_DNSLookUpTimer = SetTimer(DNS_TIMER_ID, 5000, NULL);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -180,6 +193,19 @@ BOOL CPingGUin_MainDlg::OnInitDialog()
 	Shell_NotifyIcon( NIM_ADD, &m_nid ); // add to the taskbar's status area
 }*/
 
+void CPingGUin_MainDlg::OnClose( ) {
+	// And remove the icon, what a magic!!
+	if (!KillTimer (m_PingTimer))
+		MessageBox(_T("Could not kill ping timer!"));
+	if (!KillTimer (m_DNSLookUpTimer))
+		MessageBox(_T("Could not kill dns timer!"));
+
+	if ((m_DlgVisible == TRUE) && (SATaskBarDelIcon(this->GetSafeHwnd(), ID_MINTRAYICON) == FALSE))
+		MessageBox(_T("Could not delete taskbar icon!"));
+
+	CDialogEx::OnClose();
+}
+
 void CPingGUin_MainDlg::OnSysCommand(UINT nID, LPARAM lParam) {
 	if ((nID & 0xFFF0) == SC_MINIMIZE)
 		// Hide app and activate tray
@@ -214,10 +240,10 @@ void CPingGUin_MainDlg::HideApp()
 			15, //sec
 			AfxGetApp()->LoadIcon(IDR_MAINFRAME));	*/
 	theApp.HideApplication();
-	if (!MyTaskBarAddIcon(this->GetSafeHwnd(), ID_MINTRAYICON, UM_TRAYNOTIFY, m_hIcon, _T("PingGUIn Net Notifier")))
-		MessageBox(_T("Could not create taskbar icon!"));
+	//if (!MyTaskBarAddIcon(this->GetSafeHwnd(), ID_MINTRAYICON, UM_TRAYNOTIFY, m_hIcon, _T("PingGUIn Net Notifier")))
+		//MessageBox(_T("Could not create taskbar icon!"));
 	//this->ShowWindow(SW_HIDE);
-	_bVisible = FALSE;
+	m_DlgVisible = FALSE;
 }
 
 LRESULT CPingGUin_MainDlg::OnTrayNotify(WPARAM wParam, LPARAM lParam)
@@ -232,10 +258,10 @@ LRESULT CPingGUin_MainDlg::OnTrayNotify(WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDBLCLK: //on double-click the left mouse button restore the dialog
 		//m_nid.hIcon = NULL;
 		//Shell_NotifyIcon (NIM_DELETE, &m_nid);
-		_bVisible = TRUE;
+		m_DlgVisible = TRUE;
 		this->ShowWindow( SW_RESTORE );
 		if (!SATaskBarDelIcon(this->GetSafeHwnd(), ID_MINTRAYICON))
-			MessageBox(_T("Could not create taskbar icon!"));
+			MessageBox(_T("Could not delete taskbar icon!"));
 
 		//this->ShowWindow( SW_SHOW );
 		return 1;
@@ -294,7 +320,7 @@ void CPingGUin_MainDlg::OnTrayContextMenu ()
 // function or another window-management function
 void CPingGUin_MainDlg::OnWindowPosChanging( WINDOWPOS FAR* lpwndpos ) 
 {
-	if( !_bVisible ) //do this only once to hide the dialog on start
+	if( !m_DlgVisible ) //do this only once to hide the dialog on start
 	{
 		lpwndpos->flags &= ~SWP_SHOWWINDOW;
 	}
@@ -336,93 +362,112 @@ void CPingGUin_MainDlg::InitVars(NetInfoDialog *obj) {
 	DNS[0] = obj->m_PRIDNS;
 	DNS[1] = obj->m_SecDNS;
 	IsSingleHost = obj->m_IsSingleHost;
+	IsNotifyEnabled = obj->m_IsNotifyOn;
 	MaxPingReqs = obj->m_MaxPingReqs;
 }
 
 void CPingGUin_MainDlg::OnTimer(UINT_PTR nIDEvent) {
-	CString temp;
+	switch (nIDEvent) {
+	case PING_TIMER_ID:
+	{
+		CString temp;
 
-	// Update static target IP
-	//if (noReq==0)
-		//SetDlgItemText(IDC_TARGETIP, mainIP);
+		// Update static target IP
+		//if (noReq==0)
+			//SetDlgItemText(IDC_TARGETIP, mainIP);
 
-	// if requests reached max
-	if (noReq == 0) {
-		// Set progress bar to initial position
-		ProgressPingReq->SetPos(1);
-		switch (RunStage) {
-			// For each case change the text and IP address
-		case 1:
-			PingIP = &DNS[0];
-			ReportStaticDefaultText = _T("Primary DNS Server");
-			SetDlgItemText(IDC_TARGETTYPE, ReportStaticDefaultText);
-			SetDlgItemText(IDC_TARGETIP, *PingIP);
-			CurReportStatic = (CStatic *) GetDlgItem(IDC_REPORT_PDNS);
-			break;
-		case 2:
-			ReportStaticDefaultText = _T("Secondary DNS Server");
-			SetDlgItemText(IDC_TARGETTYPE, ReportStaticDefaultText);
-			PingIP = &DNS[1];
-			SetDlgItemText(IDC_TARGETIP, *PingIP);
-			CurReportStatic = (CStatic *) GetDlgItem(IDC_REPORT_SDNS);
-			break;
-		default:
-			break;
+		// if requests reached max
+		if (noReq == 0) {
+			// Set progress bar to initial position
+			ProgressPingReq->SetPos(1);
+			switch (RunStage) {
+				// For each case change the text and IP address
+			case 1:
+				PingIP = &DNS[0];
+				ReportStaticDefaultText = _T("Primary DNS Server");
+				SetDlgItemText(IDC_TARGETTYPE, ReportStaticDefaultText);
+				SetDlgItemText(IDC_TARGETIP, *PingIP);
+				CurReportStatic = (CStatic *) GetDlgItem(IDC_REPORT_PDNS);
+				break;
+			case 2:
+				ReportStaticDefaultText = _T("Secondary DNS Server");
+				SetDlgItemText(IDC_TARGETTYPE, ReportStaticDefaultText);
+				PingIP = &DNS[1];
+				SetDlgItemText(IDC_TARGETIP, *PingIP);
+				CurReportStatic = (CStatic *) GetDlgItem(IDC_REPORT_SDNS);
+				break;
+			default:
+				break;
+			}
 		}
+
+		// increment Request Number
+		noReq++;
+		// Progress the progress control
+
+		// Update number of request static box
+		temp.Format(_T("%d"), noReq);
+		SetDlgItemText(IDC_REQ, temp);
+
+		// received reply
+		if (PingHost(*PingIP) == 1) {
+		// increment Reply number
+			noReplies++;
+			// Update number of reply static box
+			temp.Format(_T("%d"), noReplies);
+			SetDlgItemText(IDC_NOREPLY, temp);
+
+			/*switch (RunStage) {
+				// For each case chane the text and IP address
+			case 0:
+				SetDlgItemText(IDC_REPORT_DG, temp);
+				break;
+			case 1:
+				temp.Format(_T("Primary DNS replied %d%% of requests"), PercentageOfReplies);
+				SetDlgItemText(IDC_REPORT_PDNS, temp);
+				break;
+			case 2:
+				temp.Format(_T("Secondary DNS replied %d%% of requests"), PercentageOfReplies);
+				SetDlgItemText(IDC_REPORT_SDNS, temp);
+				break;
+			default:
+				break;
+			}*/
+		}
+		int PercentageOfReplies = noReplies * 100 / noReq;
+		temp.Format(_T(" replied %d%% requests"), PercentageOfReplies);
+		CurReportStatic->SetWindowText(ReportStaticDefaultText+temp);
+
+		// if requests reached max
+		if (noReq == MaxPingReqs) {
+			noReq = 0;
+			noReplies = 0;
+			RunStage++;
+			if (RunStage >= 3) {
+				if (!KillTimer (m_PingTimer))
+					MessageBox(_T("Could not kill timer!"));
+				KillTimer(m_PingTimer);
+				SetDlgItemText(IDC_STATUSBAR, _T("                                      You may close the window now."));
+			}
+		}
+		else
+			ProgressPingReq->StepIt();
 	}
-
-	// increment Request Number
-	noReq++;
-	// Progress the progress control
-
-	// Update number of request static box
-	temp.Format(_T("%d"), noReq);
-	SetDlgItemText(IDC_REQ, temp);
-
-	// received reply
-	if (PingHost(*PingIP) == 1) {
-	// increment Reply number
-		noReplies++;
-		// Update number of reply static box
-		temp.Format(_T("%d"), noReplies);
-		SetDlgItemText(IDC_NOREPLY, temp);
-
-		/*switch (RunStage) {
-			// For each case chane the text and IP address
-		case 0:
-			SetDlgItemText(IDC_REPORT_DG, temp);
-			break;
-		case 1:
-			temp.Format(_T("Primary DNS replied %d%% of requests"), PercentageOfReplies);
-			SetDlgItemText(IDC_REPORT_PDNS, temp);
-			break;
-		case 2:
-			temp.Format(_T("Secondary DNS replied %d%% of requests"), PercentageOfReplies);
-			SetDlgItemText(IDC_REPORT_SDNS, temp);
-			break;
-		default:
-			break;
-		}*/
-	}
-	int PercentageOfReplies = noReplies * 100 / noReq;
-	temp.Format(_T(" replied %d%% requests"), PercentageOfReplies);
-	CurReportStatic->SetWindowText(ReportStaticDefaultText+temp);
-
-	// if requests reached max
-	if (noReq == MaxPingReqs) {
-		noReq = 0;
-		noReplies = 0;
-		RunStage++;
-		if (RunStage >= 3) {
-			KillTimer(m_nWindowTimer);
-			SetDlgItemText(IDC_STATUSBAR, _T("                                      You may close the window now."));
-			if (SAShowBalloonTip(theApp.m_hInstance, this->GetSafeHwnd(), ID_MINTRAYICON, _T("SAOSX PingGUIn"), _T("You may close the window now"), IDR_MAINFRAME) == FALSE)
-				//MessageBox(NULL, _T("Error on Notification!"), _T("SA CDEject App"), NULL);
+	break;
+	case DNS_TIMER_ID:
+	{
+		// make DNS request
+		if (DNSLookUpPossible("www.google.com")) {
+			if (SAShowBalloonTip(theApp.m_hInstance, this->GetSafeHwnd(), ID_MINTRAYICON, _T("SAOSX PingGUIn"), _T("Internet is available."), IDR_MAINFRAME) == FALSE)
 				MessageBox(_T("Error on taskbar notification!"));
+
+			SetDlgItemText(IDC_STATUSBAR, _T("                                               Internet is available."));
+			SetDlgItemText(IDC_DNS, _T("DNS Lookup successful."));
+			KillTimer(m_DNSLookUpTimer);
 		}
 	}
-	else
-		ProgressPingReq->StepIt();
+	break;
+	}
 
 	CDialogEx::OnTimer(nIDEvent);
 }
@@ -433,3 +478,18 @@ HCURSOR CPingGUin_MainDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
+
+/*UINT WorkerThreadDNSLookUpProc( LPVOID pParam ) {
+	CPingGUin_MainDlg* pObject = (CPingGUin_MainDlg *) pParam;
+
+    if (pObject == NULL ||
+        !pObject->IsKindOf(RUNTIME_CLASS(CPingGUin_MainDlg)))
+    return 1;   // if pObject is not valid
+
+	// made friend function to access private members
+	if (pObject->IsSingleHost)
+		AfxMessageBox(_T("Success in thread singe host!"));
+	else
+		AfxMessageBox(_T("Success in thread but not singe host!"));
+	return 0;
+}*/

@@ -1,10 +1,9 @@
-
 // CPingGUin_MainDlg.h : header file
 //
 
 #pragma once
-/*#include "ProvideNetInfoDialog.h"
-#include "afxcmn.h"*/
+
+//UINT WorkerThreadDNSLookUpProc( LPVOID pParam );
 
 // CPingGUin_MainDlg dialog
 class CPingGUin_MainDlg : public CDialogEx
@@ -17,6 +16,7 @@ public:
 
 // Dialog Data
 	enum { IDD = IDD_MAINDLG };
+	//friend UINT WorkerThreadDNSLookUpProc( LPVOID pParam );
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
@@ -29,7 +29,7 @@ protected:
 	// added for system tray
 	//CToolTipCtrl   _ToolTipCtrl;
 	//NOTIFYICONDATA m_nid;
-	BOOL           _bVisible;
+	BOOL m_DlgVisible;
 
 	/*BOOL SetIconAndTitleForBalloonTip( CToolTipCtrl *pToolTipCtrl,
 		                               int          tti_ICON, 
@@ -48,6 +48,7 @@ protected:
 
     // Generated message map functions
 	virtual BOOL OnInitDialog();
+	afx_msg void OnClose( );
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
@@ -65,9 +66,11 @@ private:
 	CString mainIP;
 	CString DNS[2];
 	CString *PingIP;
-	UINT_PTR m_nWindowTimer;
+	UINT_PTR m_PingTimer;
+	UINT_PTR m_DNSLookUpTimer;
 	// Whether to ping a single target or ISP target chain
 	BOOL IsSingleHost;
+	BOOL IsNotifyEnabled;
 	// Maximum number of requests to send set by user
 	int MaxPingReqs;
 	// which stage the app is running on
