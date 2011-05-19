@@ -2,6 +2,7 @@
 //
 #include "stdafx.h"
 #include "PingGUIN.h"
+#include "SANetUtil.h"
 #include "ProvideNetInfoDialog.h"
 #include "CPingGUin_MainDlg.h"
 #include <afxwin.h>
@@ -451,89 +452,4 @@ void NetInfoDialog::AdjustNetControls(BOOL IsSingleHost, CString Msg) {
 	}
 	if (Msg != _T(""))
 		SetDlgItemText(IDC_NOTIFYBOX, Msg);
-}
-
-BOOL DNSLookUpPossible(const char* host_name) {
-    WSADATA wsaData;
-    int iResult;
-
-    DWORD dwError;
-    int i = 0;
-
-    struct hostent *remoteHost;
-    struct in_addr addr;
-
-    //char **pAlias;
-	//CString MsgTemp;
-
-	// Initialize Winsock
-    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != 0) {
-        //AfxMessageBox(_T("WSAStartup failed: ") + iResult);
-        return false;
-    }
-
-	/*CString temp = host_name;
-	MsgTemp.Format(_T("Calling gethostbyname with %s"), temp);
-    AfxMessageBox(MsgTemp);*/
-    remoteHost = gethostbyname(host_name);
-    
-    if (remoteHost == NULL) {
-        dwError = WSAGetLastError();
-        if (dwError != 0) {
-            if (dwError == WSAHOST_NOT_FOUND) {
-                //AfxMessageBox(_T("Host not found"));
-                return false;
-            } else if (dwError == WSANO_DATA) {
-                //AfxMessageBox(_T("No data record found"));
-                return false;
-            } else {
-				// dwError is the error
-				//AfxMessageBox(_T("Function failed with error: "));
-                return false;
-            }
-        }
-    } else {
-        /*AfxMessageBox(_T("Function returned:\n"));
-        AfxMessageBox(_T("\tOfficial name: ")+ CString(remoteHost->h_name));
-        for (pAlias = remoteHost->h_aliases; *pAlias != 0; pAlias++) {
-			//temp = *pAlias;
-			MsgTemp.Format(_T("\tAlternate name #%d: %s"), ++i, CString(*pAlias));
-            AfxMessageBox(MsgTemp);
-        }
-        AfxMessageBox(_T("\tAddress type: "));
-        switch (remoteHost->h_addrtype) {
-        case AF_INET:
-            AfxMessageBox(_T("AF_INET"));
-            break;
-        case AF_NETBIOS:
-            AfxMessageBox(_T("AF_NETBIOS"));
-            break;
-        default:
-			MsgTemp.Format(_T(" %d"), remoteHost->h_addrtype);
-            AfxMessageBox(MsgTemp);
-            break;
-        }
-		MsgTemp.Format(_T("\tAddress length: %d"), remoteHost->h_length);
-        AfxMessageBox(MsgTemp);*/
-
-        i = 0;
-        if (remoteHost->h_addrtype == AF_INET)
-        {
-            while (remoteHost->h_addr_list[i] != 0) {
-                addr.s_addr = *(u_long *) remoteHost->h_addr_list[i++];
-				//temp = ;
-				//MsgTemp.Format(_T("\tIP Address #%d: %s"), i, CString(inet_ntoa(addr)));
-				if (inet_ntoa(addr) != 0)
-					return true;
-				//AfxMessageBox(MsgTemp);
-            }
-        }
-        /*else if (remoteHost->h_addrtype == AF_NETBIOS)
-        {   
-            AfxMessageBox(_T("NETBIOS address was returned"));
-			return false;
-        }*/
-    }
-	return false;
 }
