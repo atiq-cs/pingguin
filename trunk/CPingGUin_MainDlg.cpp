@@ -19,6 +19,7 @@
 #include "CPingGUin_MainDlg.h"
 #include "afxdialogex.h"
 #include "SATaskBarNotification.h"
+#include "AboutDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -40,6 +41,9 @@ BEGIN_MESSAGE_MAP(CPingGUin_MainDlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
+	ON_COMMAND(ID_APP_EXIT, OnAppExit)
+	ON_COMMAND(ID_APP_RESTORE, OnAppRestore)
 	ON_WM_SYSCOMMAND()
 	ON_MESSAGE(UM_TRAYNOTIFY, OnTrayNotify)
 	//}}AFX_MSG_MAP
@@ -260,8 +264,8 @@ LRESULT CPingGUin_MainDlg::OnTrayNotify(WPARAM wParam, LPARAM lParam)
 		//Shell_NotifyIcon (NIM_DELETE, &m_nid);
 		m_DlgVisible = TRUE;
 		this->ShowWindow( SW_RESTORE );
-		if (!SATaskBarDelIcon(this->GetSafeHwnd(), ID_MINTRAYICON))
-			MessageBox(_T("Could not delete taskbar icon!"));
+		//if (!SATaskBarDelIcon(this->GetSafeHwnd(), ID_MINTRAYICON))
+			//MessageBox(_T("Could not delete taskbar icon!"));
 
 		//this->ShowWindow( SW_SHOW );
 		return 1;
@@ -285,6 +289,21 @@ void CPingGUin_MainDlg::OnTrayContextMenu ()
 	pMenu->SetForegroundWindow ();
 }
 
+void CPingGUin_MainDlg::OnAppAbout() 
+{
+	CAboutDlg aboutdlg;
+	aboutdlg.DoModal();
+}
+
+void CPingGUin_MainDlg::OnAppRestore() 
+{
+	ShowWindow (SW_RESTORE);
+}
+
+void CPingGUin_MainDlg::OnAppExit() 
+{
+	PostMessage (WM_CLOSE);
+}
 
 /*BOOL CPingGUin_MainDlg::PreTranslateMessage(MSG* pMsg) 
 {

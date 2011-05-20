@@ -77,6 +77,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AboutDlg.cpp" />
     <ClCompile Include="CPingGUin_MainDlg.cpp" />
     <ClCompile Include="PingGUIN.cpp" />
     <ClCompile Include="ProvideNetInfoDialog.cpp" />
@@ -85,6 +86,7 @@
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AboutDlg.h" />
     <ClInclude Include="CPingGUin_MainDlg.h" />
     <ClInclude Include="PingGUIN.h" />
     <ClInclude Include="ProvideNetInfoDialog.h" />
@@ -98,6 +100,7 @@
     <ResourceCompile Include="PingGUIN.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\duck.bmp" />
     <None Include="res\PingGUIN.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
