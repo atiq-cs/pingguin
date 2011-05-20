@@ -50,6 +50,10 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnClose( );
 	afx_msg void OnPaint();
+	afx_msg void OnAppRestore();
+	afx_msg void OnAppAbout();
+	afx_msg void OnAppExit();
+
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	// sys tray start
