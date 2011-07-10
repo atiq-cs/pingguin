@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PingGUIN", "PingGUI.vcxproj", "{FBFBB22E-6E50-46E9-AE9F-7FD22C59D5FC}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "PingGuin_Setup", "PingGuin_Setup\PingGuin_Setup.vdproj", "{F9CAA75A-7CE9-4808-A871-85C13C093271}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +15,8 @@ Global
 		{FBFBB22E-6E50-46E9-AE9F-7FD22C59D5FC}.Debug|Win32.Build.0 = Debug|Win32
 		{FBFBB22E-6E50-46E9-AE9F-7FD22C59D5FC}.Release|Win32.ActiveCfg = Release|Win32
 		{FBFBB22E-6E50-46E9-AE9F-7FD22C59D5FC}.Release|Win32.Build.0 = Release|Win32
+		{F9CAA75A-7CE9-4808-A871-85C13C093271}.Debug|Win32.ActiveCfg = Debug
+		{F9CAA75A-7CE9-4808-A871-85C13C093271}.Release|Win32.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

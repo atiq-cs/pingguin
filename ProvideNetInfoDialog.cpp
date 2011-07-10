@@ -31,7 +31,7 @@ BEGIN_MESSAGE_MAP(NetInfoDialog, CDialog)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) , m_MaxPingReqs(10), m_IsSingleHost(TRUE), m_IsNotifyOn(FALSE)
+NetInfoDialog::NetInfoDialog() : CDialog(NetInfoDialog::IDD) , m_MaxPingReqs(10), m_IsSingleHost(TRUE), m_isNotifyOn(FALSE)
 {
 	//{{AFX_DATA_INIT(NetInfoDialog)
 		// NOTE: the ClassWizard will add member initialization here
@@ -411,7 +411,7 @@ void NetInfoDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_IPADDRESS1, m_GWIP);
 	DDX_Text(pDX, IDC_IPADDRESS2, m_PRIDNS);
 	DDX_Text(pDX, IDC_IPADDRESS3, m_SecDNS);
-	DDX_Check(pDX, IDC_CHECKNOTIFY, m_IsNotifyOn);
+	DDX_Check(pDX, IDC_CHECKNOTIFY, m_isNotifyOn);
 	//}}AFX_DATA_MAP
 	DDX_Text(pDX, IDC_NOREQ, m_MaxPingReqs);
 	DDV_MinMaxInt(pDX, m_MaxPingReqs, 1, 100);

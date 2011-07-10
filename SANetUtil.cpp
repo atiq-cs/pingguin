@@ -25,17 +25,17 @@
  *			6 when request timed out
  *			7 when some other error occurred
  */
-int PingHost(CString ipaddrstr) {
+int PingHost(CString ipAddrStr) {
 	HANDLE hIcmpFile;
     unsigned long ipaddr = INADDR_NONE;
     DWORD dwRetVal = 0;
     char SendData[32] = "Data Buffer";
     LPVOID ReplyBuffer = NULL;
     DWORD ReplySize = 0;
-	CStringA ipaddrstrA(ipaddrstr);
+	CStringA ipAddrStrA(ipAddrStr);
 
 	// Convert Ip address to ip addr
-	ipaddr = inet_addr(ipaddrstrA);
+	ipaddr = inet_addr(ipAddrStrA);
 
     if (ipaddr == INADDR_NONE)
 		return 3;
@@ -77,7 +77,7 @@ int PingHost(CString ipaddrstr) {
 			default:
 				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("IcmpSendEcho returned error: %ld\r\n"),  errorno);
 		}
-		if (IsNotifyOn == FALSE) {
+		if (isNotifyOn == FALSE) {
 			if (pMainWnd->CountResponse >= 48) {
 				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target client is possibly down.\r\n\r\nClick close button to quit the program."));
 				pMainWnd->PingQuit(pstr);
