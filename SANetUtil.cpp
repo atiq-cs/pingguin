@@ -1,7 +1,7 @@
 /*	Author	:	Saint Atique
  *	Date	:	May 03, 2011
  *	Desc	:	Network Utility Functions
-				It 
+				Contains Ping, DNS lookup implementations
  */
 
 #pragma once
