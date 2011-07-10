@@ -381,7 +381,7 @@ void CPingGUin_MainDlg::InitVars(NetInfoDialog *obj) {
 	DNS[0] = obj->m_PRIDNS;
 	DNS[1] = obj->m_SecDNS;
 	IsSingleHost = obj->m_IsSingleHost;
-	IsNotifyEnabled = obj->m_IsNotifyOn;
+	IsNotifyEnabled = obj->m_isNotifyOn;
 	MaxPingReqs = obj->m_MaxPingReqs;
 }
 

@@ -19,7 +19,7 @@ public:
 	//NetInfoDialog::NetInfoDialog(UINT nIDTemplate);
 	NetInfoDialog();
 	void GetNetInfo(CString* strArray);
-	//BOOL IsNotifyOn() { return (m_IsNotifyOn != 0); }
+	//BOOL isNotifyOn() { return (m_isNotifyOn != 0); }
 	CString GetWMINETINFO();
 	static UINT DNSThreadProc( LPVOID pParam );
 	void AdjustNetControls(BOOL IsSingleHost, CString Msg);
@@ -48,7 +48,7 @@ public:
 	CString m_PRIDNS;
 	CString m_SecDNS;
 
-	BOOL m_IsNotifyOn;
+	BOOL m_isNotifyOn;
 	BOOL m_IsSingleHost;
 	// Stores the number of requests to send set by user
 	int m_MaxPingReqs;

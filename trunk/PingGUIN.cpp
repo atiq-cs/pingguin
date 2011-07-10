@@ -23,11 +23,11 @@ static char THIS_FILE[] = __FILE__;
 // PingGUIn App
 
 // Global variables declarations
-static CString IpAddress[3];
-static CString ipaddrstr;
-static CStringA ipaddrstrA;
+static CString ipAddress[3];
+static CString ipAddrStr;
+static CStringA ipAddrStrA;
 
-BOOL IsNotifyOn = FALSE;
+BOOL isNotifyOn = FALSE;
 /*	RunStage 1 means current target host is Gateway IP Address
  *	2 means Primary DNS Server
  *	3 means Secondary DNS Server
@@ -84,24 +84,24 @@ BOOL CSAApp::InitInstance() {
 
 	if (cmdInfo.GetOption (_T("t"))) {
 		//Write code to display help
-		IsNotifyOn = TRUE;
+		isNotifyOn = TRUE;
 	}
 
-	if (cmdInfo.GetOption (_T("gw"), ipaddrstr)) {
+	if (cmdInfo.GetOption (_T("gw"), ipAddrStr)) {
 		//Write code to display help
-		IpAddress[0] = ipaddrstr;
+		ipAddress[0] = ipAddrStr;
 		ClProvided = TRUE;
 	}
 
-	if (cmdInfo.GetOption (_T("pd"), ipaddrstr)) {
+	if (cmdInfo.GetOption (_T("pd"), ipAddrStr)) {
 		//Write code to display help
-		IpAddress[1] = ipaddrstr;
+		ipAddress[1] = ipAddrStr;
 		ClProvided = TRUE;
 	}
 
-	if (cmdInfo.GetOption (_T("sd"), ipaddrstr)) {
+	if (cmdInfo.GetOption (_T("sd"), ipAddrStr)) {
 		//Write code to display help
-		IpAddress[2] = ipaddrstr;
+		ipAddress[2] = ipAddrStr;
 		ClProvided = TRUE;
 	}
 
