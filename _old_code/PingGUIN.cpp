@@ -6,6 +6,7 @@
 				Impelemnetation of ICMP echo,
 				DNS
 	Site:		http://saosx.com
+	Last Mod:	17 April, 2011
 */
 
 #include "PingGUIN.h"
@@ -53,7 +54,7 @@ SAFrame::SAFrame() {
 	       CRect(120, 100, 500, 285), NULL);
 	TimeOutInterval = 5100;
 	SetTimer (ID_TIMER, TimeOutInterval-100, &SAFrame::TimerProc);
-	_stprintf_s(TextStr, MSGSIZE, _T("\r\n\tPing MessageBox"));
+	_stprintf_s(TextStr, MSGSIZE, _T("\r\n\tPingGUIN is sending request.."));
 	CountResponse = 0;
 	CountRequest = 0;
 }
@@ -83,7 +84,7 @@ int SAFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	CRect PRect;
 	this->GetClientRect(PRect);
-	m_Edit01.Create(ES_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER,
+	m_Edit01.Create(ES_MULTILINE | WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_AUTOVSCROLL | ES_READONLY,
 		          PRect, this, 0x188);
 	// Since the window was successfully created, return 0
 	return 0;
@@ -162,6 +163,8 @@ LRESULT SAFrame::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
 
 void PingQuit(SAFrame* pMainWnd, TCHAR *str);
 
+static CString Summary_EditText;
+
 void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DWORD dwTime) {
 	// Code
 	SAFrame* pMainWnd = (SAFrame*) AfxGetMainWnd ();
@@ -179,7 +182,7 @@ void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DW
 	if (RunStage > 0 && RunStage < 4)
 		ipaddrstr = IpAddress[RunStage-1];
 	else {
-        _stprintf_s(pstr, MSGSIZE, _T("\r\nRun stage invalid. Please check.\r\n"));
+        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\nRun stage invalid. Please check.\r\n"));
 		pMainWnd->PingQuit(pstr);
 	}
 
@@ -187,14 +190,14 @@ void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DW
 	ipaddr = inet_addr(ipaddrstrA);
 
     if (ipaddr == INADDR_NONE) {
-        _stprintf_s(pstr, MSGSIZE, _T("\r\nusage: pingguin /t [optional] /ip IPAddress\r\n"));
+        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\nusage: pingguin /t [optional] /ip IPAddress\r\n"));
 		pMainWnd->PingQuit(pstr);
 		return ;
     }
  
     hIcmpFile = IcmpCreateFile();
     if (hIcmpFile == INVALID_HANDLE_VALUE) {
-        _stprintf_s(pstr, MSGSIZE, _T("\tUnable to open handle.\r\n"));
+        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\tUnable to open handle.\r\n"));
         _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("IcmpCreatefile returned error: %ld\r\n"), GetLastError() );
 		pMainWnd->PingQuit(pstr);
 		return ;
@@ -204,20 +207,21 @@ void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DW
     ReplyBuffer = (VOID*) malloc(ReplySize);
 
     if (ReplyBuffer == NULL) {
-        _stprintf_s(pstr, MSGSIZE, _T("\tUnable to allocate memory\r\n"));
+        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\tUnable to allocate memory\r\n"));
 		pMainWnd->MessageBox(pstr);
         pMainWnd->PingQuit(pstr);
 		return ;
     }
+
 	switch (RunStage) {
 	case 1:
 		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target: Gateway IP [%s] "), ipaddrstr);
 		break;
 	case 2:
-		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\nTarget: Primary DNS Server [%s] "), ipaddrstr);
+		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target: Primary DNS Server [%s] "), ipaddrstr);
 		break;
 	case 3:
-		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\nTarget: Secondary DNS Server [%s] "), ipaddrstr);
+		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target: Secondary DNS Server [%s] "), ipaddrstr);
 		break;
 	default:
 		break;
@@ -250,11 +254,38 @@ void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DW
         _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Roundtrip time = %ld milliseconds\r\n"), 
             pEchoReply->RoundTripTime);
 
-		if (IsToggleMode == TRUE && pEchoReply->Status != 11003) {
-			_stprintf_s(pstr, MSGSIZE, _T("\r\nServer is up.\r\n\r\nClick close button to quit the program."));
-			pMainWnd->PingQuit(pstr);
+		if (pEchoReply->Status != 11003)
+			pMainWnd->CountResponse++;
+
+		if (pMainWnd->CountRequest == 10) {
+			int p = (pMainWnd->CountResponse * 100) / pMainWnd->CountRequest;
+			switch (RunStage) {
+			case 1:
+				_stprintf_s(pstr, MSGSIZE, _T("Host Gateway replied %d%% of the requests.\r\n"), p);
+				break;
+			case 2:
+				_stprintf_s(pstr, MSGSIZE,_T("Primary DNS Server replied %d%% of the requests.\r\n"), p);
+				break;
+			case 3:
+				_stprintf_s(pstr, MSGSIZE,_T("Secondary DNS Server replied %d%% of the requests.\r\n"), p);
+				break;
+			default:
+				break;
+			}
+
+			Summary_EditText += pstr;
+
+			if (RunStage == 3) {
+				Summary_EditText += _T("\r\nClick close to close the application.");
+				_tcscpy_s(pstr, MSGSIZE, Summary_EditText);
+				pMainWnd->PingQuit(pstr);
+			}
+			else
+				RunStage++;
+
+			pMainWnd->CountRequest=0;
+			pMainWnd->CountResponse=0;
 		}
-		pMainWnd->CountResponse = 0;
     }
     else {
 		int errorno = GetLastError();
@@ -269,7 +300,7 @@ void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DW
 		}
 		if (IsToggleMode == FALSE) {
 			if (pMainWnd->CountResponse >= 48) {
-				_stprintf_s(pstr, MSGSIZE, _T("Target client is possibly down.\r\n\r\nClick close button to quit the program."));
+				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target client is possibly down.\r\n\r\nClick close button to quit the program."));
 				pMainWnd->PingQuit(pstr);
 				return ;
 			}
@@ -288,6 +319,7 @@ void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DW
 
 
 BOOL CSAApp::InitInstance() {
+	BOOL ClProvided = FALSE;
 	CCustomCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
@@ -296,11 +328,25 @@ BOOL CSAApp::InitInstance() {
 		IsToggleMode = TRUE;
 	}
 
-	if (cmdInfo.GetOption (_T("gw"),ipaddrstr)) {
+	if (cmdInfo.GetOption (_T("gw"), ipaddrstr)) {
 		//Write code to display help
 		IpAddress[0] = ipaddrstr;
+		ClProvided = TRUE;
 	}
-	else {
+
+	if (cmdInfo.GetOption (_T("pd"), ipaddrstr)) {
+		//Write code to display help
+		IpAddress[1] = ipaddrstr;
+		ClProvided = TRUE;
+	}
+
+	if (cmdInfo.GetOption (_T("sd"), ipaddrstr)) {
+		//Write code to display help
+		IpAddress[2] = ipaddrstr;
+		ClProvided = TRUE;
+	}
+
+	if (ClProvided == FALSE) {
 		// This is the way to create modal dialog
 		NetInfoDialog SADlg;
 		INT_PTR nRet = -1;
@@ -317,6 +363,7 @@ BOOL CSAApp::InitInstance() {
 			case IDOK:
 				// Retrieve available information
 				SADlg.GetNetInfo(IpAddress);
+				IsToggleMode = SADlg.IsNotifyOn();
 				break;
 			case IDCANCEL:
 				return FALSE;
