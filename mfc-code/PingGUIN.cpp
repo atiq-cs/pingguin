@@ -4,7 +4,7 @@
 				1. System tray implementation
 				2. DNS Lookup
 				3. Use of Timer
-	Site:		http://saosx.com
+	Site:		http://saoslab.com
 	Last Mod:	17 April, 2011
 */
 
