@@ -9,14 +9,21 @@
 	Last Mod:	17 April, 2011
 */
 
+#include "stdafx.h"
 #include "PingGUIN.h"
+#include "CPingGUin_MainDlg.h"
 #include "ProvideNetInfoDialog.h"
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
+// Global variables declarations
 static CString IpAddress[3];
 static CString ipaddrstr;
 static CStringA ipaddrstrA;
 
-BOOL IsToggleMode = FALSE;
+BOOL IsNotifyOn = FALSE;
 /*	RunStage 1 means current target host is Gateway IP Address
  *	2 means Primary DNS Server
  *	3 means Secondary DNS Server
@@ -48,16 +55,109 @@ BOOL CCustomCommandLineInfo::GetOption (LPCTSTR option) {
 	return GetOption (option, CString ());
 }
 
-SAFrame::SAFrame() {
-	// Create the window's frame
-	Create(NULL, _T("SAOSX PingGUIn"), WS_OVERLAPPEDWINDOW,
-	       CRect(120, 100, 500, 285), NULL);
+BOOL CSAApp::InitInstance() {
+		// InitCommonControlsEx() is required on Windows XP if an application
+	// manifest specifies use of ComCtl32.dll version 6 or later to enable
+	// visual styles.  Otherwise, any window creation will fail.
+	INITCOMMONCONTROLSEX InitCtrls;
+	InitCtrls.dwSize = sizeof(InitCtrls);
+	// Set this to include all the common control classes you want to use
+	// in your application.
+	InitCtrls.dwICC = ICC_WIN95_CLASSES;
+	InitCommonControlsEx(&InitCtrls);
 
-	TimeOutInterval = 5100;
-	SetTimer (ID_TIMER, TimeOutInterval-100, &SAFrame::TimerProc);
-	_stprintf_s(TextStr, MSGSIZE, _T("\r\n\tPingGUIN is sending request.."));
-	CountResponse = 0;
-	CountRequest = 0;
+	CWinApp::InitInstance();
+
+	BOOL ClProvided = FALSE;
+	CCustomCommandLineInfo cmdInfo;
+	ParseCommandLine(cmdInfo);
+
+	if (cmdInfo.GetOption (_T("t"))) {
+		//Write code to display help
+		IsNotifyOn = TRUE;
+	}
+
+	if (cmdInfo.GetOption (_T("gw"), ipaddrstr)) {
+		//Write code to display help
+		IpAddress[0] = ipaddrstr;
+		ClProvided = TRUE;
+	}
+
+	if (cmdInfo.GetOption (_T("pd"), ipaddrstr)) {
+		//Write code to display help
+		IpAddress[1] = ipaddrstr;
+		ClProvided = TRUE;
+	}
+
+	if (cmdInfo.GetOption (_T("sd"), ipaddrstr)) {
+		//Write code to display help
+		IpAddress[2] = ipaddrstr;
+		ClProvided = TRUE;
+	}
+
+	// Create the main window dialog required for data transfer
+	CPingGUin_MainDlg *SAMainWindlg;
+
+	if (ClProvided == FALSE) {
+		// This is the way to create modal dialog
+		NetInfoDialog* SADlg = new NetInfoDialog;
+		INT_PTR nRet = -1;
+		nRet = SADlg->DoModal();
+
+		// Handle the return value from DoModal
+		switch (nRet) {
+			case -1: 
+				AfxMessageBox(_T("Dialog box could not be created!"));
+				break;
+			case IDABORT:
+				// Do something
+				break;
+			case IDOK:
+				// Transfer info from previous dialog
+				SAMainWindlg= new CPingGUin_MainDlg;
+				SAMainWindlg->InitVars(SADlg);
+				break;
+			case IDCANCEL:
+				return FALSE;
+				break;
+			default:
+				// Do something
+				break;
+		};
+		delete SADlg;
+	}
+
+	m_pMainWnd = SAMainWindlg;
+
+	INT_PTR nResponse = SAMainWindlg->DoModal();
+	if (nResponse == IDOK)
+	{
+		// TODO: Place code here to handle when the dialog is
+		//  dismissed with OK
+		AfxMessageBox(_T("You clicked close!"));
+	}
+	AfxMessageBox(_T("Reached here!"));
+	delete SAMainWindlg;
+	SAMainWindlg = NULL;
+	m_pMainWnd = NULL;
+
+	/*LoadIcon(IDI_ICON1);
+	m_pMainWnd = new SAFrame;
+	m_pMainWnd->ShowWindow(SW_SHOW);
+	m_pMainWnd->UpdateWindow();*/
+
+	return FALSE;
+}
+
+CSAApp theApp;
+
+/*void SAFrame::PingQuit(TCHAR *str) {
+	if (!IsWindowVisible())
+		ShowWindow(SW_RESTORE);
+	PostMessage(WM_PAINT, (LPARAM)0, (LPARAM)0);
+	KillTimer(ID_TIMER);
+	SetForegroundWindow();
+	SetWindowPos(&wndTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
 BOOL SAFrame::PreCreateWindow(CREATESTRUCT &cs) {
@@ -163,235 +263,4 @@ LRESULT SAFrame::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
    return CFrameWnd::WindowProc(message, wParam, lParam);
 }
 
-void PingQuit(SAFrame* pMainWnd, TCHAR *str);
-
-static CString Summary_EditText;
-
-void CALLBACK EXPORT SAFrame::TimerProc (HWND hWnd, UINT nMsg, UINT nTimerID, DWORD dwTime) {
-	// Code
-	SAFrame* pMainWnd = (SAFrame*) AfxGetMainWnd ();
-	TCHAR *pstr = pMainWnd->TextStr;
-	pstr[0] = '\0';
-    
-	HANDLE hIcmpFile;
-    unsigned long ipaddr = INADDR_NONE;
-    DWORD dwRetVal = 0;
-    char SendData[32] = "Data Buffer";
-    LPVOID ReplyBuffer = NULL;
-    DWORD ReplySize = 0;
-	pMainWnd->CountRequest++;
-
-	if (RunStage > 0 && RunStage < 4)
-		ipaddrstr = IpAddress[RunStage-1];
-	else {
-        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\nRun stage invalid. Please check.\r\n"));
-		pMainWnd->PingQuit(pstr);
-	}
-
-	ipaddrstrA = ipaddrstr;
-	ipaddr = inet_addr(ipaddrstrA);
-
-    if (ipaddr == INADDR_NONE) {
-        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\nusage: pingguin /t [optional] /ip IPAddress\r\n"));
-		pMainWnd->PingQuit(pstr);
-		return ;
-    }
- 
-    hIcmpFile = IcmpCreateFile();
-    if (hIcmpFile == INVALID_HANDLE_VALUE) {
-        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\tUnable to open handle.\r\n"));
-        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("IcmpCreatefile returned error: %ld\r\n"), GetLastError() );
-		pMainWnd->PingQuit(pstr);
-		return ;
-    }
-
-    ReplySize = sizeof(ICMP_ECHO_REPLY) + sizeof(SendData);
-    ReplyBuffer = (VOID*) malloc(ReplySize);
-
-    if (ReplyBuffer == NULL) {
-        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\tUnable to allocate memory\r\n"));
-		pMainWnd->MessageBox(pstr);
-        pMainWnd->PingQuit(pstr);
-		return ;
-    }
-
-	switch (RunStage) {
-	case 1:
-		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target: Gateway IP [%s] "), ipaddrstr);
-		break;
-	case 2:
-		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target: Primary DNS Server [%s] "), ipaddrstr);
-		break;
-	case 3:
-		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target: Secondary DNS Server [%s] "), ipaddrstr);
-		break;
-	default:
-		break;
-	}
-	
-	_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\nRequest [%d] "), pMainWnd->CountRequest);
-
-    dwRetVal = IcmpSendEcho(hIcmpFile, ipaddr, SendData, sizeof(SendData), 
-        NULL, ReplyBuffer, ReplySize, pMainWnd->TimeOutInterval);
-
-    if (dwRetVal != 0) {
-        PICMP_ECHO_REPLY pEchoReply = (PICMP_ECHO_REPLY)ReplyBuffer;
-        struct in_addr ReplyAddr;
-        ReplyAddr.S_un.S_addr = pEchoReply->Address;
-        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T(" sent to %s\r\n"), ipaddrstr);
-
-		if (dwRetVal > 1) {
-            _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\tReceived %ld icmp message responses\r\n\r\n"), dwRetVal);
-            _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\tInformation from the first response:\r\n")); 
-        }    
-        else {    
-            _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Received %ld icmp message response\r\n"), dwRetVal);
-        }    
-        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Received from %s\r\n"), CString(inet_ntoa( ReplyAddr )) );
-		if (pEchoReply->Status == 11003)
-			_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Status = Request timed out.\r\n"));
-		else
-			_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Status = %ld\r\n"), 
-				pEchoReply->Status);
-        _stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Roundtrip time = %ld milliseconds\r\n"), 
-            pEchoReply->RoundTripTime);
-
-		if (pEchoReply->Status != 11003)
-			pMainWnd->CountResponse++;
-
-		if (pMainWnd->CountRequest == 10) {
-			int p = (pMainWnd->CountResponse * 100) / pMainWnd->CountRequest;
-			switch (RunStage) {
-			case 1:
-				_stprintf_s(pstr, MSGSIZE, _T("Host Gateway replied %d%% of the requests.\r\n"), p);
-				break;
-			case 2:
-				_stprintf_s(pstr, MSGSIZE,_T("Primary DNS Server replied %d%% of the requests.\r\n"), p);
-				break;
-			case 3:
-				_stprintf_s(pstr, MSGSIZE,_T("Secondary DNS Server replied %d%% of the requests.\r\n"), p);
-				break;
-			default:
-				break;
-			}
-
-			Summary_EditText += pstr;
-
-			if (RunStage == 3) {
-				Summary_EditText += _T("\r\nClick close to close the application.");
-				_tcscpy_s(pstr, MSGSIZE, Summary_EditText);
-				pMainWnd->PingQuit(pstr);
-			}
-			else
-				RunStage++;
-
-			pMainWnd->CountRequest=0;
-			pMainWnd->CountResponse=0;
-		}
-    }
-    else {
-		int errorno = GetLastError();
-		_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("lost in the network\r\n"));
-		switch (errorno) {
-			case 11010:
-				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Timed out due to possible unreachability\r\n"),  errno);
-				pMainWnd->CountResponse++;
-				break;
-			default:
-				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("IcmpSendEcho returned error: %ld\r\n"),  errorno);
-		}
-		if (IsToggleMode == FALSE) {
-			if (pMainWnd->CountResponse >= 48) {
-				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Target client is possibly down.\r\n\r\nClick close button to quit the program."));
-				pMainWnd->PingQuit(pstr);
-				return ;
-			}
-			else {
-				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\n\r\nAnalyzing target host's unavailability.\r\n"));
-				_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("Absence of reply count %d.\r\n"), pMainWnd->CountResponse);
-				pMainWnd->PostMessage(WM_PAINT, (LPARAM)0, (LPARAM)0);
-				return ;
-			}
-		}
-		else
-			_stprintf_s(&pstr[_tcslen(pstr)], MSGSIZE, _T("\r\nServer is still dumb."));
-    }
-	pMainWnd->PostMessage(WM_PAINT, (LPARAM)0, (LPARAM)0);
-}
-
-
-BOOL CSAApp::InitInstance() {
-	BOOL ClProvided = FALSE;
-	CCustomCommandLineInfo cmdInfo;
-	ParseCommandLine(cmdInfo);
-
-	if (cmdInfo.GetOption (_T("t"))) {
-		//Write code to display help
-		IsToggleMode = TRUE;
-	}
-
-	if (cmdInfo.GetOption (_T("gw"), ipaddrstr)) {
-		//Write code to display help
-		IpAddress[0] = ipaddrstr;
-		ClProvided = TRUE;
-	}
-
-	if (cmdInfo.GetOption (_T("pd"), ipaddrstr)) {
-		//Write code to display help
-		IpAddress[1] = ipaddrstr;
-		ClProvided = TRUE;
-	}
-
-	if (cmdInfo.GetOption (_T("sd"), ipaddrstr)) {
-		//Write code to display help
-		IpAddress[2] = ipaddrstr;
-		ClProvided = TRUE;
-	}
-
-	if (ClProvided == FALSE) {
-		// This is the way to create modal dialog
-		NetInfoDialog SADlg;
-		INT_PTR nRet = -1;
-		nRet = SADlg.DoModal();
-
-		// Handle the return value from DoModal
-		switch (nRet) {
-			case -1: 
-				AfxMessageBox(_T("Dialog box could not be created!"));
-				break;
-			case IDABORT:
-				// Do something
-				break;
-			case IDOK:
-				// Retrieve available information
-				SADlg.GetNetInfo(IpAddress);
-				IsToggleMode = SADlg.IsNotifyOn();
-				break;
-			case IDCANCEL:
-				return FALSE;
-				break;
-			default:
-				// Do something
-				break;
-		};
-
-	}
-
-	//LoadIcon(IDI_ICON1);
-	m_pMainWnd = new SAFrame;
-	m_pMainWnd->ShowWindow(SW_SHOW);
-	m_pMainWnd->UpdateWindow();
-
-	return TRUE;
-}
-
-CSAApp theApp;
-
-void SAFrame::PingQuit(TCHAR *str) {
-	if (!IsWindowVisible())
-		ShowWindow(SW_RESTORE);
-	PostMessage(WM_PAINT, (LPARAM)0, (LPARAM)0);
-	KillTimer(ID_TIMER);
-	SetForegroundWindow();
-	SetWindowPos(&wndTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-}
+*/

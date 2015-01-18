@@ -1,12 +1,3 @@
-#include <afxwin.h>
-#include "resource.h"
-// For COM
-#define _WIN32_DCOM
-#include <afxdisp.h>			// for AfxThrowOleDispatchException
-#include <comdef.h>
-#include <Wbemidl.h>
-# pragma comment(lib, "wbemuuid.lib")
-
 
 #if !defined(AFX_MYDIALOG_H__20B59A5E_FBE6_4A1C_A6B7_FDC199FE74EC__INCLUDED_)
 #define AFX_MYDIALOG_H__20B59A5E_FBE6_4A1C_A6B7_FDC199FE74EC__INCLUDED_
@@ -20,7 +11,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // NetInfoDialog dialog
 
-long DisplayStringArray(VARIANT* vArray);
+BOOL DNSLookUpPossible(const char* host_name);
 
 class NetInfoDialog : public CDialog
 {
@@ -32,6 +23,13 @@ public:
 	void GetNetInfo(CString* strArray);
 	BOOL IsNotifyOn() { return (m_IsNotifyOn != 0); }
 	CString GetWMINETINFO();
+	static UINT DNSThreadProc( LPVOID pParam );
+	void AdjustNetControls(BOOL IsSingleHost, CString Msg);
+	typedef struct THREADSTRUCT				//structure for passing to the controlling function
+	{
+		NetInfoDialog*	_this;
+	} THREADSTRUCT;
+	
 
 // Dialog Data
 	//{{AFX_DATA(NetInfoDialog)
@@ -43,17 +41,20 @@ protected:
 	virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//{{AFX_MSG(NetInfoDialog)
+	afx_msg void OnBnClickedSingleHostCheck();
+	afx_msg void OnClose();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
-private:
+
+public:
 	CString m_GWIP;
 	CString m_PRIDNS;
 	CString m_SecDNS;
 
 	BOOL m_IsNotifyOn;
 	BOOL m_IsSingleHost;
-public:
-	afx_msg void OnBnClickedCheck2();
+	// Stores the number of requests to send set by user
+	int m_MaxPingReqs;
 };
 
 //{{AFX_INSERT_LOCATION}}

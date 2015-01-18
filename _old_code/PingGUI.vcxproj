@@ -77,13 +77,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CPingGUin_MainDlg.cpp" />
     <ClCompile Include="PingGUIN.cpp" />
     <ClCompile Include="ProvideNetInfoDialog.cpp" />
+    <ClCompile Include="SANetUtil.cpp" />
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPingGUin_MainDlg.h" />
     <ClInclude Include="PingGUIN.h" />
     <ClInclude Include="ProvideNetInfoDialog.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SANetUtil.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="PingGUIN.rc" />
