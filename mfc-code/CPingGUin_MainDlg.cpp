@@ -477,7 +477,7 @@ void CPingGUin_MainDlg::OnTimer(UINT_PTR nIDEvent) {
 	{
 		// make DNS request
 		if (DNSLookUpPossible("www.google.com")) {
-			if (SAShowBalloonTip(theApp.m_hInstance, this->GetSafeHwnd(), ID_MINTRAYICON, _T("SAOSLab PingGUIn"), _T("Internet is available."), IDR_MAINFRAME) == FALSE)
+			if (SAShowBalloonTip(theApp.m_hInstance, this->GetSafeHwnd(), ID_MINTRAYICON, _T("SAOSLab Pingguin"), _T("Internet is available."), IDR_MAINFRAME) == FALSE)
 				MessageBox(_T("Error on taskbar notification!"));
 
 			SetDlgItemText(IDC_STATUSBAR, _T("                                               Internet is available."));
